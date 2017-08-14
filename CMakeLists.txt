@@ -22,6 +22,9 @@ include_directories(
 
 add_executable(a_star
   src/main.cpp
+  src/path.cpp
+
+  include/a_start/path.h
 
 )
 

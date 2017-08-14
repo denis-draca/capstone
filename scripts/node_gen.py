@@ -13,112 +13,18 @@ def callback(data):
     node = 0
 
     first = True
-    f.write("total_nodes: " + str(data.info.height * data.info.width) + "\n")
 
     map = []
 
     for y in range(0, data.info.height):
-        current_x = 0;
         temp = []
         for x in range(y * data.info.width, y * data.info.width + data.info.width):
             temp.append(data.data[x])
-            # node += 1
-            #
-            # if data.data[x] > 0:
-            #     continue
-            #
-            # f.write("node_" + str(node) + ":" + "\n")
-            # f.write(" x: " + str(current_x) + "\n")
-            # f.write(" y: " + str(y) + "\n")
-            #
-            # connected_nodes = []
-            #
-            # read_pos1 = x - 1
-            # read_pos2 = x + 1
-            # read_pos3 = x - data.info.width - 1
-            # read_pos4 = x - data.info.width + 1
-            # read_pos5 = x - data.info.width
-            # read_pos6 = x + data.info.width -1
-            # read_pos7 = x + data.info.width + 1
-            # read_pos8 = x + data.info.width
-            #
-            # if read_pos1 < y * data.info.width:
-            #     print "1"
-            # else:
-            #     if data.data[read_pos1] < 100:
-            #         connected_nodes.append(read_pos1)
-            #
-            # if read_pos2 > y * data.info.width + data.info.width:
-            #     print "2"
-            # else:
-            #     if data.data[read_pos2] < 100:
-            #         connected_nodes.append(read_pos2)
-            #
-            # if y - 1 < 0:
-            #     print "3"
-            #
-            # else:
-            #     if read_pos3 < (y -1) * data.info.width:
-            #         print "4"
-            #     else:
-            #         if data.data[read_pos3] < 100:
-            #             connected_nodes.append(read_pos3)
-            #
-            # if y - 1 < 0:
-            #     print "5"
-            # else:
-            #     if read_pos4 > (y - 1) * data.info.width + data.info.width:
-            #         print "6"
-            #     else:
-            #         if data.data[read_pos4] < 100:
-            #             connected_nodes.append(read_pos4)
-            #
-            # if y - 1 < 0:
-            #     print "7"
-            # else:
-            #     if data.data[read_pos5] < 100:
-            #         connected_nodes.append(read_pos5)
-            #
-            # if y + 1 > data.info.height:
-            #     print "8"
-            # else:
-            #     if read_pos6 < (y + 1) * data.info.width:
-            #         print "9"
-            #     else:
-            #         if data.data[read_pos6] < 100:
-            #             connected_nodes.append(read_pos6)
-            #
-            # if y + 1 > data.info.height:
-            #     print "10"
-            # else:
-            #     if read_pos7 > (y + 1) * data.info.width + data.info.width:
-            #         print "11"
-            #     else:
-            #         if data.data[read_pos7] < 100:
-            #             connected_nodes.append(read_pos7)
-            #
-            # if y + 1 > data.info.height:
-            #     print "12"
-            # else:
-            #     if data.data[read_pos8] < 100:
-            #         connected_nodes.append(read_pos8)
-            #
-            #
-            # first = False
-            # f.write(" connected_nodes: [")
-            # for temp_nodes in connected_nodes[:-1]:
-            #     f.write(str(temp_nodes) + ",")
-            #
-            # if len(connected_nodes) > 0:
-            #     f.write(str(connected_nodes[len(connected_nodes)-1]) + "]" + "\n")
-            # else:
-            #     f.write("]\n")
-            #
-            # current_x += 1
 
         map.append(temp)
 
     node = 0
+    node_list = []
     for y in range(0, len(map)):
         for x in range(0, len(map[y])):
             if map[y][x] > 0:
@@ -129,6 +35,7 @@ def callback(data):
             f.write(" x: " + str(x) + "\n")
             f.write(" y: " + str(y) + "\n")
 
+            node_list.append(node)
             node += 1
             connected_nodes = []
             for y_temp in range(y-1, y+2):
@@ -152,6 +59,15 @@ def callback(data):
 
             first = False
 
+    # f.write("total_nodes: " + str(node) + "\n")
+    f.write(" node_list: [")
+    for temp_nodes in node_list[:-1]:
+        f.write(str(temp_nodes) + ",")
+
+    if len(connected_nodes) > 0:
+        f.write(str(node_list[len(node_list) - 1]) + "]" + "\n")
+    else:
+        f.write("]\n")
     f.close()
     rospy.signal_shutdown('node_maker')
 

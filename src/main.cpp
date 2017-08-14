@@ -13,15 +13,14 @@ int main(int argc, char** argv)
 
     ros::NodeHandle n;
 
-
     std::vector<int> test;
-    int test2;
-    std::string str;
 
-    std::cout <<"before" << std::endl;
-    n.getParam("/a_star/total_nodes", test2);
+    n.getParam("/a_star/node_list", test);
 
-    std::cout << "TEST: " << test2 << std::endl;
+    for (int i = 0; i < test.size(); i++)
+    {
+        std::cout <<" " << test.at(i) << std::endl;
+    }
 
 
     ros::spin();
