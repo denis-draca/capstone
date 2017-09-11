@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "a_start/path.h"
+#include "a_start/nodegen.h"
 
 int main(int argc, char** argv)
 {
@@ -11,18 +13,22 @@ int main(int argc, char** argv)
 
     std::cout << "************************************" << std::endl;
 
+
     ros::NodeHandle n;
 
-    std::vector<int> test;
+    path _path(n);
 
-    n.getParam("/a_star/node_list", test);
+    ros::Rate loop_rate(50);
 
-    for (int i = 0; i < test.size(); i++)
+    while(ros::ok())
     {
-        std::cout <<" " << test.at(i) << std::endl;
+        _path.find_path();
+
+        ros::spinOnce();
+        loop_rate.sleep();
     }
 
 
-    ros::spin();
+//    ros::spin();
 
 }

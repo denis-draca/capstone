@@ -6,18 +6,12 @@
 #include "ros/ros.h"
 #include <string>
 #include <math.h>
+#include "geometry_msgs/PoseArray.h"
+#include "opencv2/opencv.hpp"
+#include "geometry_msgs/Pose.h"
 
 class path
 {
-private:
-    path();
-
-    void setup_node_list();
-    bool setup_h();
-
-    int find_closest_node(geometry_msgs::Point given_point);
-    int find_pos(int id);
-
 private:
     struct node{
         double x;
@@ -29,7 +23,35 @@ private:
 
         double heuristic;
 
+        bool open;
+        bool closed;
+
+        int pos;
+
     };
+private:
+    path();
+
+    void setup_node_list();
+    bool setup_h();
+
+    int find_closest_node(geometry_msgs::Point given_point);
+    int find_pos(int id);
+
+    bool sort_list(std::vector<node> &list);
+
+    int update_current_point(geometry_msgs::Point start_point);
+    int update_end_point(geometry_msgs::Point end_point);
+
+    bool display_list(std::vector<node> &list, cv::Mat &img, char name[], int b, int g, int r, bool lines);
+
+    void reset_nodes();
+
+    void publish_path(std::vector<node> &list);
+
+    void start_point_callback(const geometry_msgs::PointConstPtr &start_msg);
+    void end_point_callback(const geometry_msgs::PointConstPtr &end_msg);
+    void print_h(std::vector<node> &node_list);
 
 private:
     geometry_msgs::Point _start_point;
@@ -46,12 +68,23 @@ private:
     int _start_pos;
     int _end_pos;
 
+    ros::Publisher _path_pub;
+    ros::Subscriber _start_sub;
+    ros::Subscriber _end_sub;
+
+    cv::Mat img_open;
+
+    geometry_msgs::Point _given_start_point;
+    geometry_msgs::Point _given_end_point;
+
+    cv::Mat img_for_path;
+
+
 
 public:
     path(ros::NodeHandle nh);
 
-    int update_current_point(geometry_msgs::Point start_point);
-    int update_end_point(geometry_msgs::Point end_point);
+    int find_path();
 };
 
 #endif // PATH_H

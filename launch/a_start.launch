@@ -20,7 +20,10 @@
     <rosparam file="$(find a_start)/data/nodes.yaml" command="load" />
   </node>
 
+  <node pkg="a_start" type="visualiser" name="visualiser" required="true" output="screen">
+  </node>
+
  <node pkg="map_server" type="map_server" name="map_server" required="true" args="$(find a_start)/data/map.yaml" />
-  <node pkg="rviz" type="rviz" name="rviz" required="true" />
+  <!-- <node pkg="rviz" type="rviz" name="rviz" required="true" /> -->
 </launch>
 
