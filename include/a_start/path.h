@@ -53,6 +53,8 @@ private:
     void end_point_callback(const geometry_msgs::PointConstPtr &end_msg);
     void print_h(std::vector<node> &node_list);
 
+    double distance_between_nodes(node &node1, node &node2);
+
 private:
     geometry_msgs::Point _start_point;
     geometry_msgs::Point _end_point;

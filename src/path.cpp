@@ -122,7 +122,9 @@ int path::find_path()
 
                 _node_list.at(node_pos).open = true;
 
-                temp.heuristic = sqrt(pow(current_node.x - temp.x,2) + pow(current_node.y - temp.y,2));
+                node start = _node_list.at(_start_pos);
+
+                temp.heuristic = sqrt(pow(start.x - temp.x,2) + pow(start.y - temp.y,2));
 
                 temp.heuristic += sqrt(pow(temp.x - _node_list.at(_end_pos).x,2) + pow(temp.y - _node_list.at(_end_pos).y,2));
 
@@ -541,5 +543,14 @@ void path::print_h(std::vector<node> &node_list)
 
     cv::imshow("H", img);
     cv::waitKey(3);
+}
+
+double path::distance_between_nodes(path::node &node1, path::node &node2)
+{
+    double dist = 0.0;
+
+    dist = sqrt(pow((node2.x - node1.x),2) + pow((node2.y - node1.y),2));
+
+    return dist;
 }
 
