@@ -3,6 +3,7 @@
 path::path(ros::NodeHandle nh):
     _n(nh)
 {
+    //NEW PATH BUILD
     ROS_INFO("STARTING NODE SETUP");
     setup_node_list();
     ROS_INFO("NODE SETUP DONE");
