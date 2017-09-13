@@ -4,7 +4,7 @@
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "capstone_visualiser");
+    ros::init(argc, argv, "visualiser");
     ros::NodeHandle n;
 
 

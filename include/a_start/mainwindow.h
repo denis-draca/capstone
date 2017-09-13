@@ -34,6 +34,8 @@ private: //methods
 
     void update_inputs();
 
+    void setup_landmarks();
+
 public:
     explicit MainWindow(ros::NodeHandle &n, QWidget *parent = 0);
     ~MainWindow();

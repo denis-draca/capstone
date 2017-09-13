@@ -7,6 +7,8 @@ MainWindow::MainWindow(ros::NodeHandle &n, QWidget *parent) :
 {
     ui->setupUi(this);
 
+    setup_landmarks();
+
     multiplier = 8;
 
     _path_sub = _n.subscribe("/capstone/raw/path", 1, &MainWindow::path_callback,this);
@@ -146,6 +148,15 @@ void MainWindow::update_inputs()
 
 }
 
+void MainWindow::setup_landmarks()
+{
+    int count;
+
+    _n.getParam("/count", &count);
+
+
+}
+
 MainWindow::~MainWindow()
 {
     delete ui;
@@ -208,12 +219,6 @@ void MainWindow::on__bu_find_path_clicked()
     cv::resize(display_path, temp, size);
 
     ui->img_label->setPixmap(QPixmap::fromImage(Mat2QImage(temp)));
-
-    start_pt.x = start_pt.x - path_img.cols/2;
-    start_pt.y = path_img.rows/2 - start_pt.y;
-
-    end_pt.x = end_pt.x - path_img.cols/2;
-    end_pt.y = path_img.rows/2 - end_pt.y;
 
     _start_point_pub.publish(start_pt);
     _end_point_pub.publish(end_pt);

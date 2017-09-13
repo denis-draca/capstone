@@ -32,20 +32,6 @@ path::path(ros::NodeHandle nh):
 
 int path::find_path()
 {
-
-    std::vector<std::vector<bool>> explored;
-
-    for(int y = 0; y < img_for_path.rows; y++)
-    {
-        std::vector<bool> temp;
-        for(int x = 0; x < img_for_path.cols; x++)
-        {
-            temp.push_back(false);
-        }
-
-        explored.push_back(temp);
-    }
-
     ROS_INFO("Resetting nodes");
     reset_nodes();
 
@@ -60,18 +46,6 @@ int path::find_path()
 
     ROS_INFO("UPRATE POINTS DONE");
 
-    pt_s.x = _given_start_point.x;
-    pt_s.y = _given_start_point.y;
-
-    std::cout << _end_id << std::endl;
-
-    pt_e.x = _node_list.at(_end_pos).x;
-    pt_e.y = _node_list.at(_end_pos).y;
-
-
-    std::vector<node> open_list;
-    std::vector<node> closed_list;
-    std::vector<node> total_open_list;
 
     if(_given_start_point.x == _given_end_point.x && _given_start_point.y == _given_end_point.y)
     {
@@ -79,93 +53,73 @@ int path::find_path()
         return -1;
     }
 
-    bool _found = false;
 
-    closed_list.push_back(_node_list.at(_start_pos));
+    std::vector<node> open_list;
+    std::vector<node> closed_list;
 
-    std::cout << "start id: " << _node_list.at(_start_pos).id << " END ID: " << _end_id << std::endl;
+    node start = _node_list.at(_start_pos);
+    node end = _node_list.at(_end_pos);
 
-    while(!_found)
+    start.g_score = 0;
+    start.f_score = distance_between_nodes(start, end);
+
+    open_list.push_back(start);
+
+    _node_list.at(_start_pos).open = true;
+
+    ROS_INFO("STARTING SEARCH");
+
+    while(!open_list.empty())
     {
-        node current_node = closed_list.back();
-        geometry_msgs::Point current_node_pt;
+        sort_list(open_list);
 
-        current_node_pt.x = current_node.x;
-        current_node_pt.y = current_node.y;
+        node current = open_list.back();
 
-        double dist = sqrt(pow((pt_e.x - current_node.x),2) + pow((pt_e.y - current_node.y),2));
+        int pos = find_pos(current.id);
 
-        if(current_node.id == _end_id || dist < 3)
+
+        if(current.id == end.id)
         {
-            ROS_INFO("REACHED END NODE");
-            _found = true;
+            //done
+            std::cout << "FOUND" << std::endl;
             break;
         }
 
-        for(int i = 0; i < current_node.connected_nodes.size(); i++)
-        {
-            try
-            {
-                int node_pos = find_pos(current_node.connected_nodes.at(i));
-
-                if(node_pos < 0)
-                {
-                    std::cout << "Weird Access: " << node_pos << " Searched ID: " << current_node.connected_nodes.at(i) << " " << current_node.id<<std::endl;
-                    continue;
-                }
-
-                node temp = _node_list.at(node_pos);
-
-                if(temp.closed || temp.open)
-                {
-                    continue;
-                }
-
-                _node_list.at(node_pos).open = true;
-
-                node start = _node_list.at(_start_pos);
-
-                temp.heuristic = sqrt(pow(start.x - temp.x,2) + pow(start.y - temp.y,2));
-
-                temp.heuristic += sqrt(pow(temp.x - _node_list.at(_end_pos).x,2) + pow(temp.y - _node_list.at(_end_pos).y,2));
-
-//                temp.heuristic = 1;
-//                temp.heuristic += std::abs(temp.x - _node_list.at(_end_pos).x) + std::abs(temp.y - _node_list.at(_end_pos).y);
-
-
-                temp.pos = node_pos;
-
-                open_list.push_back(temp);
-                total_open_list.push_back(temp);
-            }
-            catch(std::exception e)
-            {
-                std::cout << "WHAT: " << e.what() << std::endl;
-            }
-
-        }
-
-        if(!sort_list(open_list))
-        {
-            ROS_ERROR("OPEN LIST IS EMPTY, NO PATH");
-            return -2;
-        }
-
-        closed_list.push_back(open_list.back());
-
         open_list.pop_back();
-        open_list.clear();
+        closed_list.push_back(current);
 
-        display_list(open_list, img_open, "open list", 127,127,127, false);
-        display_list(closed_list, img_open, "closed list", 0,255,0, false);
-        display_list(total_open_list, img_open, "unchanged open list", 0,0,255, false);
-//        print_h(total_open_list);
 
+        _node_list.at(pos).closed = true;
+
+        for(int i = 0; i < current.connected_nodes.size(); i++)
+        {
+            int neighbour_pos = find_pos(current.connected_nodes.at(i));
+
+            node neighbour = _node_list.at(neighbour_pos);
+
+
+            if(_node_list.at(neighbour_pos).closed)
+            {
+                continue;
+            }
+
+            if(!_node_list.at(neighbour_pos).open)
+            {
+                open_list.push_back(neighbour);
+                _node_list.at(neighbour_pos).open = true;
+
+            }
+
+
+            neighbour.g_score = distance_between_nodes(current, neighbour);
+            neighbour.f_score = neighbour.g_score + distance_between_nodes(neighbour, end);
+
+
+            update_list_info(open_list, neighbour.id, neighbour.g_score, neighbour.f_score, current.id);
+
+        }
     }
 
-    ROS_INFO("FINISHED SEARCH");
-
-    sort_list(closed_list);
 
     publish_path(closed_list);
 
@@ -173,49 +127,6 @@ int path::find_path()
 
 void path::setup_node_list()
 {
-//    std::vector<int> node_id;
-
-//    _n.getParam("/a_star/node_list", node_id);
-
-//    std::string read_node = "/a_star/node_";
-
-//    for(int i = 0; i < node_id.size(); i++)
-//    {
-//        node temp;
-
-//        std::string read_temp = read_node;
-//        read_temp.append(std::to_string(node_id.at(i)));
-
-//        std::string x_str = read_temp;
-//        std::string y_str = read_temp;
-//        std::string connected_nodes = read_temp;
-
-//        x_str.append("/x");
-//        y_str.append("/y");
-//        connected_nodes.append("/connected_nodes");
-
-//        double x;
-//        double y;
-
-//        std::vector<int> temp_list;
-
-//        _n.getParam(x_str.c_str(), x);
-//        _n.getParam(y_str.c_str(), y);
-//        _n.getParam(connected_nodes.c_str(), temp_list);
-
-//        temp.x = x - img_open.cols/2;
-//        temp.y = img_open.rows/2 - y;
-//        temp.connected_nodes = temp_list;
-//        temp.id = node_id.at(i);
-
-//        temp.open = false;
-//        temp.closed = false;
-
-//        _node_list.push_back(temp);
-
-//    }
-
-
     cv::Mat img = cv::imread("/home/denis/catkin_ws/src/a_start/data/map4.png", CV_LOAD_IMAGE_GRAYSCALE);
     for(int y = 0; y < img.rows; y++)
     {
@@ -266,28 +177,6 @@ void path::setup_node_list()
             _node_list.push_back(temp);
         }
     }
-}
-
-bool path::setup_h()
-{
-    if(_end_id < 0 || _start_id < 0)
-    {
-        return false;
-    }
-
-    for(int i = 0; i < _node_list.size(); i++)
-    {
-        if(i = _end_pos)
-        {
-            continue;
-        }
-
-        double dist = sqrt(pow(_node_list.at(i).x - _node_list.at(_end_pos).x, 2) + pow(_node_list.at(i).y - _node_list.at(_end_pos).y, 2));
-
-        _node_list.at(i).heuristic = dist;
-    }
-
-    return true;
 }
 
 int path::find_closest_node(geometry_msgs::Point given_point)
@@ -344,11 +233,35 @@ bool path::sort_list(std::vector<node> &list)
     {
         for(int x = 0; x < list.size() - i - 1; x++)
         {
-            if(list.at(x).heuristic < list.at(x + 1).heuristic)
+            if(list.at(x).f_score < list.at(x + 1).f_score)
             {
                 node temp = list.at(x);
                 list.at(x) = list.at(x + 1);
-                list.at(x + 1) = list.at(x);
+                list.at(x + 1) = temp;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool path::sort_list_biggest(std::vector<path::node> &list)
+{
+    if(list.empty())
+    {
+        ROS_ERROR("LIST IS EMPTY");
+        return false;
+    }
+
+    for(int i = 0; i < list.size() - 1; i++)
+    {
+        for(int x = 0; x < list.size() - i - 1; x++)
+        {
+            if(list.at(x).f_score > list.at(x + 1).f_score)
+            {
+                node temp = list.at(x);
+                list.at(x) = list.at(x + 1);
+                list.at(x + 1) = temp;
             }
         }
     }
@@ -483,6 +396,7 @@ void path::reset_nodes()
 void path::publish_path(std::vector<path::node> &list)
 {
 
+//    sort_list_biggest(list);
     geometry_msgs::PoseArray path;
 
 
@@ -508,6 +422,20 @@ void path::publish_path(std::vector<path::node> &list)
         path.poses.push_back(pose);
 
         list.pop_back();
+
+        for(int i = 0; i < list.size(); i++)
+        {
+            node temp2 = list.at(i);
+
+            if(temp2.id == temp.came_from)
+            {
+                node holder = list.at(i);
+                list.at(i) = list.at(list.size() - 1);
+
+                list.at(list.size() - 1) = holder;
+                break;
+            }
+        }
     }
 
     ROS_INFO("PUBLISHED");
@@ -539,7 +467,7 @@ void path::print_h(std::vector<node> &node_list)
 
         img.at<uchar>(y,x) = 0;
 
-        img.at<uchar>(y,x) = temp.heuristic;
+        img.at<uchar>(y,x) = temp.f_score;
     }
 
     cv::imshow("H", img);
@@ -552,6 +480,57 @@ double path::distance_between_nodes(path::node &node1, path::node &node2)
 
     dist = sqrt(pow((node2.x - node1.x),2) + pow((node2.y - node1.y),2));
 
+//    dist = std::abs(node2.x - node1.x) + std::abs(node2.y - node1.y);
+
     return dist;
+}
+
+bool path::update_list_info(std::vector<path::node> &list, int id , double g_score, double f_score, int came_from)
+{
+    for(int i = 0; i < list.size(); i++)
+    {
+        if(list.at(i).id == id)
+        {
+            list.at(i).g_score = g_score;
+            list.at(i).f_score = f_score;
+            list.at(i).came_from = came_from;
+            break;
+        }
+    }
+
+    return true;
+}
+
+void path::display_node_data(path::node &node1, char node_name[])
+{
+    std::cout << "*****DISPLAYING NODE INFO*****" << std::endl;
+    std::cout << "NODE NAME -> " << node_name << std::endl;
+    std::cout << "ID -> " << node1.id << std::endl;
+    std::cout << "X -> " << node1.x << " Y -> " << node1.y << std::endl;
+    std::cout << "OPEN? -> " << node1.open << " CLODED? ->" << node1.closed << std::endl;
+    std::cout << "GSCORE -> " << node1.g_score << " FSCORE -> " << node1.f_score << std::endl;
+    std::cout << "*****FINISHED DISPLAYING NODE INFO*****" << std::endl;
+}
+
+path::node path::smallest_node(std::vector<path::node> &list)
+{
+    if(list.empty())
+    {
+        ROS_INFO("EMPTY");
+    }
+
+    node smallest = list.front();
+
+    for(int i = 0; i < list.size(); i++)
+    {
+        node temp = list.at(i);
+
+        if(temp.f_score < smallest.f_score)
+        {
+            smallest = temp;
+        }
+    }
+
+    return smallest;
 }
 

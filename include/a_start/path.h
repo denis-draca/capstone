@@ -21,24 +21,31 @@ private:
 
         std::vector<int> connected_nodes;
 
-        double heuristic;
+//        double heuristic;
+
+        double g_score;
+        double f_score;
 
         bool open;
         bool closed;
 
         int pos;
 
+        int came_from;
+
     };
 private:
     path();
 
     void setup_node_list();
-    bool setup_h();
+//    bool setup_h();
 
     int find_closest_node(geometry_msgs::Point given_point);
     int find_pos(int id);
 
     bool sort_list(std::vector<node> &list);
+
+    bool sort_list_biggest(std::vector<node> &list);
 
     int update_current_point(geometry_msgs::Point start_point);
     int update_end_point(geometry_msgs::Point end_point);
@@ -54,6 +61,12 @@ private:
     void print_h(std::vector<node> &node_list);
 
     double distance_between_nodes(node &node1, node &node2);
+
+    bool update_list_info(std::vector<node> &list, int id, double g_score, double f_score, int came_from);
+
+    void display_node_data(node &node1, char node_name[]);
+
+    node smallest_node(std::vector<node> &list);
 
 private:
     geometry_msgs::Point _start_point;
