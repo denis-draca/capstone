@@ -7,8 +7,6 @@ MainWindow::MainWindow(ros::NodeHandle &n, QWidget *parent) :
 {
     ui->setupUi(this);
 
-    setup_landmarks();
-
     multiplier = 8;
 
     _path_sub = _n.subscribe("/capstone/raw/path", 1, &MainWindow::path_callback,this);
@@ -45,6 +43,9 @@ MainWindow::MainWindow(ros::NodeHandle &n, QWidget *parent) :
         ui->in_end_y->setValidator(new QIntValidator(0, path_img.rows, this));
     }
 
+
+    setup_landmarks();
+    display_landmarks();
 
     _timer = new QTimer(this);
      connect(_timer, SIGNAL(timeout()), this, SLOT(check_callbacks()));
@@ -152,10 +153,58 @@ void MainWindow::setup_landmarks()
 {
     int count;
 
-    _n.getParam("/count", &count);
+    _n.getParam("/count", count);
+
+//    std::cout << "count " << count << std::endl;
+
+    for(int i = 0; i < count; i++)
+    {
+        std::string index = std::to_string(i);
+        std::string baseline = "/landmark";
+
+        baseline.append(index.c_str());
+
+        std::vector<int> xy_coordinates;
+
+        _n.getParam(baseline, xy_coordinates);
+
+        std::pair<int,int> temp;
+        temp.first = xy_coordinates.front();
+        temp.second = xy_coordinates.back();
+
+        _landmarks.push_back(temp);
+    }
 
 
 }
+
+void MainWindow::display_landmarks()
+{
+    cv::Mat landmark_disp = path_img.clone();
+
+    for(int i = 0; i < _landmarks.size(); i++)
+    {
+        std::pair<int,int> temp = _landmarks.at(i);
+
+        cv::Point2f pt;
+
+        pt.x = temp.first;
+        pt.y = temp.second;
+
+//        ROS_ERROR("X %d Y %d", temp.first, temp.second);
+        cv::circle(landmark_disp, pt, 1, cv::Scalar(50, 100, 200));
+    }
+
+    cv::Mat temp;
+
+    cv::Size size(landmark_disp.cols * multiplier, landmark_disp.rows * multiplier);
+    cv::resize(landmark_disp, temp, size);
+
+    ui->img_landmarks->setPixmap(QPixmap::fromImage(Mat2QImage(temp)));
+
+}
+
+
 
 MainWindow::~MainWindow()
 {

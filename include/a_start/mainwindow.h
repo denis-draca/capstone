@@ -36,6 +36,8 @@ private: //methods
 
     void setup_landmarks();
 
+    void display_landmarks();
+
 public:
     explicit MainWindow(ros::NodeHandle &n, QWidget *parent = 0);
     ~MainWindow();
@@ -69,6 +71,8 @@ private: // members
     ros::Subscriber _path_sub;
     ros::Publisher _start_point_pub;
     ros::Publisher _end_point_pub;
+
+    std::vector<std::pair<int,int>> _landmarks;
 
 
 };
