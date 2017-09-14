@@ -9,6 +9,7 @@
 #include "geometry_msgs/PoseArray.h"
 #include "opencv2/opencv.hpp"
 #include "geometry_msgs/Pose.h"
+#include "std_msgs/String.h"
 
 class path
 {
@@ -84,6 +85,7 @@ private:
     int _end_pos;
 
     ros::Publisher _path_pub;
+    ros::Publisher _error_pub;
     ros::Subscriber _start_sub;
     ros::Subscriber _end_sub;
 

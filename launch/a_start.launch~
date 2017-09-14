@@ -18,9 +18,12 @@
     <param name="goalx" type="double" value="-1.50"/>
     <param name="goaly" type="double" value="-1.55"/>
     <rosparam file="$(find a_start)/data/nodes.yaml" command="load" />
+    <rosparam file="$(find a_start)/data/topic_list.yaml" command="load" />
   </node>
 
   <node pkg="a_start" type="visualiser" name="visualiser" required="true" output="screen">
+  <rosparam file="$(find a_start)/data/landmarks.yaml" command="load" />
+  <rosparam file="$(find a_start)/data/topic_list.yaml" command="load" />
   </node>
 
  <node pkg="map_server" type="map_server" name="map_server" required="true" args="$(find a_start)/data/map.yaml" />

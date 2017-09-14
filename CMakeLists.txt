@@ -20,9 +20,9 @@ set (untitled_HDRS
 )
 
 set (untitled_SRCS
-    src/main.cpp
-    src/mainwindow.cpp
-    src/path.cpp
+    src/Path_planner/main.cpp
+    src/Visualisation/mainwindow.cpp
+    src/Path_planner/path.cpp
 )
 
 set (untitled_UIS
@@ -56,9 +56,8 @@ include_directories(
 
 
 add_executable(a_star
-  src/main.cpp
-  src/path.cpp
-  src/nodegen.cpp
+  src/Path_planner/main.cpp
+  src/Path_planner/path.cpp
 
   include/a_start/path.h
 
@@ -69,8 +68,8 @@ add_executable(a_star
 )
 
 add_executable(node_generation
-  src/main_node.cpp
-  src/nodegen.cpp
+  src/Node_gen/main_node.cpp
+  src/Node_gen/nodegen.cpp
 
   include/a_start/nodegen.h
 
@@ -78,11 +77,20 @@ add_executable(node_generation
 
 add_executable(visualiser
 
-  src/visual.cpp
+  src/Visualisation/visual.cpp
 
   include/a_start/mainwindow.h
 
   ${SOURCES} ${MOC_SRCS} ${RES_SOURCES} ${UI_HEADERS}
+
+)
+
+add_executable(main_path
+
+  src/Main_path/main_path_in.cpp
+  src/Main_path/main_path.cpp
+
+  include/a_start/main_path.h
 
 )
 
@@ -96,6 +104,8 @@ target_link_libraries(node_generation ${OpenCV_LIBS})
 add_library( visualiser_ SHARED ${untitled_SRCS} ${UIS} ${RSCS} ${TRS} ${MOCS} ${RES_SOURCES})
 target_link_libraries(visualiser_ ${QT_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${catkin_LIBRARIES} ${OpenCV_LIBS} )
 target_link_libraries(visualiser visualiser_)
+
+target_link_libraries(main_path ${catkin_LIBRARIES})
 
 
 add_definitions(-std=c++11)

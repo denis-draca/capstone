@@ -1,0 +1,6 @@
+errors:
+ a_star: "error_messages/a_start"
+ main_path: "error_messages/main_path"
+paths:
+ a_star: "capstone/a_star"
+ main_path: "capstone/main_path"

@@ -14,6 +14,8 @@
 #include <QValidator>
 #include <QTimer>
 #include "geometry_msgs/PoseArray.h"
+#include <string>
+#include "std_msgs/String.h"
 
 namespace Ui {
 class MainWindow;
@@ -38,6 +40,9 @@ private: //methods
 
     void display_landmarks();
 
+    void a_start_error_callback(const std_msgs::String &msg);
+    void main_path_error_callback(const std_msgs::String &msg);
+
 public:
     explicit MainWindow(ros::NodeHandle &n, QWidget *parent = 0);
     ~MainWindow();
@@ -51,6 +56,8 @@ private slots:
 
     void check_callbacks();
 
+
+    void on_bu_clear_clicked();
 
 private: // members
     Ui::MainWindow *ui;
@@ -69,10 +76,16 @@ private: // members
     QTimer *_timer;
 
     ros::Subscriber _path_sub;
+    ros::Subscriber _error_a_start_sub;
+    ros::Subscriber _error_main_sub;
+
     ros::Publisher _start_point_pub;
     ros::Publisher _end_point_pub;
 
     std::vector<std::pair<int,int>> _landmarks;
+
+    std::string _a_start_error;
+    std::string _main_path_error;
 
 
 };
