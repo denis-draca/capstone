@@ -20,6 +20,8 @@ private://members
     ros::NodeHandle _n;
 
     ros::Publisher _error_pub;
+    ros::Publisher _path_pub;
+    ros::Publisher _path_points_pub;
 
     ros::Subscriber _path_sub;
 
@@ -27,6 +29,7 @@ private://members
 
 public:
     main_path(ros::NodeHandle &n);
+    void find_steps();
 };
 
 #endif // MAIN_PATH_H

@@ -3,4 +3,5 @@ errors:
  main_path: "error_messages/main_path"
 paths:
  a_star: "/capstone/raw/path"
- main_path: "capstone/main_path"
+ main_path: "capstone/main_path/text"
+ main_path_points: "capstone/main_path/points"
