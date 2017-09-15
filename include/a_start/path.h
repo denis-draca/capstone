@@ -69,6 +69,8 @@ private:
 
     node smallest_node(std::vector<node> &list);
 
+    geometry_msgs::PoseArray reverse_path(geometry_msgs::PoseArray &path);
+
 private:
     geometry_msgs::Point _start_point;
     geometry_msgs::Point _end_point;

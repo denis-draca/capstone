@@ -472,6 +472,7 @@ void path::publish_path(std::vector<path::node> &list)
     }
 
     ROS_INFO("PUBLISHED");
+    path = reverse_path(path);
     _path_pub.publish(path);
 }
 
@@ -565,5 +566,17 @@ path::node path::smallest_node(std::vector<path::node> &list)
     }
 
     return smallest;
+}
+
+geometry_msgs::PoseArray path::reverse_path(geometry_msgs::PoseArray &path)
+{
+    geometry_msgs::PoseArray path_reversed;
+
+    for(int i = path.poses.size() - 1; i >=0; i--)
+    {
+        path_reversed.poses.push_back(path.poses.at(i));
+    }
+
+    return path_reversed;
 }
 

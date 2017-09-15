@@ -42,6 +42,8 @@ private: //methods
 
     void a_start_error_callback(const std_msgs::String &msg);
     void main_path_error_callback(const std_msgs::String &msg);
+    void directions_callback(const std_msgs::String &msg);
+    void direction_pts_callback(const geometry_msgs::PoseArrayConstPtr &msg);
 
 public:
     explicit MainWindow(ros::NodeHandle &n, QWidget *parent = 0);
@@ -58,6 +60,8 @@ private slots:
 
 
     void on_bu_clear_clicked();
+
+    void on_ch_disp_error_clicked(bool checked);
 
 private: // members
     Ui::MainWindow *ui;
@@ -78,6 +82,8 @@ private: // members
     ros::Subscriber _path_sub;
     ros::Subscriber _error_a_start_sub;
     ros::Subscriber _error_main_sub;
+    ros::Subscriber _path_directions_sub;
+    ros::Subscriber _path_points_sub;
 
     ros::Publisher _start_point_pub;
     ros::Publisher _end_point_pub;
@@ -86,6 +92,8 @@ private: // members
 
     std::string _a_start_error;
     std::string _main_path_error;
+
+    bool _error_show;
 
 
 };

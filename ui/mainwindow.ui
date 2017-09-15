@@ -106,7 +106,7 @@
      <enum>Qt::Horizontal</enum>
     </property>
    </widget>
-   <widget class="QTabWidget" name="tabWidget">
+   <widget class="QTabWidget" name="Directions">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -187,6 +187,50 @@
       </property>
       <property name="text">
        <string>Clear ERRORs</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="ch_disp_error">
+      <property name="geometry">
+       <rect>
+        <x>740</x>
+        <y>30</y>
+        <width>161</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Update Error Boxs</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_4">
+     <attribute name="title">
+      <string>Directions</string>
+     </attribute>
+     <widget class="QLabel" name="img_directions">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>10</y>
+        <width>801</width>
+        <height>401</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QTextBrowser" name="out_directions">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>440</y>
+        <width>921</width>
+        <height>121</height>
+       </rect>
       </property>
      </widget>
     </widget>

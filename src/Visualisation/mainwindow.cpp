@@ -12,14 +12,20 @@ MainWindow::MainWindow(ros::NodeHandle &n, QWidget *parent) :
     std::string error_out_a_star;
     std::string error_out_main;
     std::string raw_path;
+    std::string directions;
+    std::string direction_pts;
 
     _n.getParam("/visualiser/errors/a_star", error_out_a_star);
     _n.getParam("/visualiser/errors/main_path", error_out_main);
     _n.getParam("/visualiser/paths/a_star", raw_path);
+    _n.getParam("/visualiser/paths/main_path", directions);
+    _n.getParam("/visualiser/paths/main_path_points", direction_pts);
 
     _path_sub = _n.subscribe(raw_path.c_str(), 1, &MainWindow::path_callback,this);
     _error_a_start_sub = _n.subscribe(error_out_a_star.c_str(),1, &MainWindow::a_start_error_callback, this);
     _error_main_sub = _n.subscribe(error_out_main.c_str(), 1, &MainWindow::main_path_error_callback, this);
+    _path_directions_sub = _n.subscribe(directions.c_str(), 1 , &MainWindow::directions_callback, this);
+    _path_points_sub = _n.subscribe(direction_pts.c_str(), 1, &MainWindow::direction_pts_callback, this);
 
     _start_point_pub = _n.advertise<geometry_msgs::Point>("/capstone/path/start", 1);
     _end_point_pub = _n.advertise<geometry_msgs::Point>("/capstone/path/end", 1);
@@ -60,6 +66,8 @@ MainWindow::MainWindow(ros::NodeHandle &n, QWidget *parent) :
     _timer = new QTimer(this);
      connect(_timer, SIGNAL(timeout()), this, SLOT(check_callbacks()));
     _timer->start(100);
+
+    _error_show = true;
 }
 
 cv::Mat MainWindow::QImage2Mat(const QImage &src)
@@ -216,6 +224,8 @@ void MainWindow::a_start_error_callback(const std_msgs::String &msg)
 {
     _a_start_error.append("\n");
     _a_start_error.append(msg.data);
+
+    if(_error_show)
     ui->out_ASTART_error->setText(_a_start_error.c_str());
 }
 
@@ -223,7 +233,20 @@ void MainWindow::main_path_error_callback(const std_msgs::String &msg)
 {
     _main_path_error.append("\n");
     _main_path_error.append(msg.data);
+
+    if(_error_show)
     ui->out_MAIN_error->setText(_main_path_error.c_str());
+}
+
+void MainWindow::directions_callback(const std_msgs::String &msg)
+{
+    std::string str = msg.data;
+    ui->out_directions->setText(str.c_str());
+}
+
+void MainWindow::direction_pts_callback(const geometry_msgs::PoseArrayConstPtr &msg)
+{
+
 }
 
 MainWindow::~MainWindow()
@@ -344,4 +367,16 @@ void MainWindow::on_bu_clear_clicked()
 
     _a_start_error.clear();
     _main_path_error.clear();
+}
+
+void MainWindow::on_ch_disp_error_clicked(bool checked)
+{
+    if(checked)
+    {
+        _error_show = true;
+    }
+    else
+    {
+        _error_show = false;
+    }
 }

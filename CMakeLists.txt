@@ -105,7 +105,7 @@ add_library( visualiser_ SHARED ${untitled_SRCS} ${UIS} ${RSCS} ${TRS} ${MOCS} $
 target_link_libraries(visualiser_ ${QT_LIBRARIES} ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} ${catkin_LIBRARIES} ${OpenCV_LIBS} )
 target_link_libraries(visualiser visualiser_)
 
-target_link_libraries(main_path ${catkin_LIBRARIES})
+target_link_libraries(main_path ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 
 add_definitions(-std=c++11)

@@ -17,7 +17,7 @@
     <param name="starty" type="double" value="1.40"/>
     <param name="goalx" type="double" value="-1.50"/>
     <param name="goaly" type="double" value="-1.55"/>
-    <rosparam file="$(find a_start)/data/nodes.yaml" command="load" />
+    <!--<rosparam file="$(find a_start)/data/nodes.yaml" command="load" /> -->
     <rosparam file="$(find a_start)/data/topic_list.yaml" command="load" />
   </node>
 
