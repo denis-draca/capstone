@@ -24,6 +24,7 @@ private://methods
     //Returns BOOL
     bool check_intersection(cv::Point2f &pt1, cv::Point2f &pt2);
     bool can_i_see_a_landmark(cv::Point2f &pt1, std::string &closest_landmark);
+    bool landmark_can_see_goal(std::string &landmark_name);
 
     //Returns Double
     double max(double x, double y);

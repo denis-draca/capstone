@@ -26,12 +26,13 @@
   <rosparam file="$(find a_start)/data/topic_list.yaml" command="load" />
   </node>
 
-  <node pkg="a_start" type="main_path" name="main_path" required="true" output="screen">
+  <node pkg="a_start" type="main_path" name="main_path" required="true" output="screen" launch-prefix="gnome-terminal --command">
   <rosparam file="$(find a_start)/data/landmarks.yaml" command="load" />
   <rosparam file="$(find a_start)/data/topic_list.yaml" command="load" />
+  <rosparam file="$(find a_start)/data/map.yaml" command="load" />
   </node>
 
- <node pkg="map_server" type="map_server" name="map_server" required="true" args="$(find a_start)/data/map.yaml" />
+ <!--<node pkg="map_server" type="map_server" name="map_server" required="true" args="$(find a_start)/data/map.yaml" /> -->
   <!-- <node pkg="rviz" type="rviz" name="rviz" required="true" /> -->
 </launch>
 

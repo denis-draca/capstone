@@ -246,6 +246,34 @@ void MainWindow::directions_callback(const std_msgs::String &msg)
 
 void MainWindow::direction_pts_callback(const geometry_msgs::PoseArrayConstPtr &msg)
 {
+    geometry_msgs::PoseArray pt_list = *msg;
+
+    if(pt_list.poses.empty())
+    {
+        _main_path_error.append("\n");
+        _main_path_error.append("empty path transmitted");
+        ui->out_MAIN_error->setText(_main_path_error.c_str());
+        return;
+    }
+
+    cv::Mat img = path_img.clone();
+
+    for(int i = 0; i < pt_list.poses.size(); i++)
+    {
+        cv::Point2f pt;
+
+        pt.x = pt_list.poses.at(i).position.x;
+        pt.y = pt_list.poses.at(i).position.y;
+
+        cv::circle(img, pt, 1, cv::Scalar(200,100,100));
+    }
+
+    cv::Mat temp;
+
+    cv::Size size(img.cols * multiplier, img.rows * multiplier);
+    cv::resize(img, temp, size);
+
+    ui->img_directions->setPixmap(QPixmap::fromImage(Mat2QImage(temp)));
 
 }
 
