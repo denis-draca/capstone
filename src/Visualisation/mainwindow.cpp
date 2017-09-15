@@ -284,7 +284,7 @@ void MainWindow::on__bu_find_path_clicked()
     cv::circle(display_path, pt1, 1, cv::Scalar(0,255,0));
     cv::circle(display_path, pt2, 1, cv::Scalar(0,0,255));
 
-    cv::Size size(display_path.cols * multiplier, display_path.rows * multiplier);
+    cv::Size size(display_path.cols * multiplier, display_path.rows * multiplier);••••••••••••••
     cv::resize(display_path, temp, size);
 
     ui->img_label->setPixmap(QPixmap::fromImage(Mat2QImage(temp)));
@@ -344,4 +344,12 @@ void MainWindow::on_bu_clear_clicked()
 
     _a_start_error.clear();
     _main_path_error.clear();
+}
+
+void MainWindow::on_checkBox_clicked(bool checked)
+{
+    if(checked)
+        _display_err = true;
+    else
+        _display_err = false;
 }

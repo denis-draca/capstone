@@ -1,0 +1,15 @@
+{
+    "name": "com.ubuntu.developer.username.a-start",
+    "description": "description of a-start",
+    "framework": "ubuntu-sdk-14.04-qml",
+    "architecture": "all",
+    "title": "a-start",
+    "hooks": {
+        "a-start": {
+            "apparmor": "a-start.json",
+            "desktop": "a_start.desktop"
+        }
+    },
+    "version": "0.1",
+    "maintainer": ""
+}

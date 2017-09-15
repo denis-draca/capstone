@@ -59,6 +59,8 @@ private slots:
 
     void on_bu_clear_clicked();
 
+    void on_checkBox_clicked(bool checked);
+
 private: // members
     Ui::MainWindow *ui;
 
@@ -87,6 +89,7 @@ private: // members
     std::string _a_start_error;
     std::string _main_path_error;
 
+    bool _display_err;
 
 };
 
