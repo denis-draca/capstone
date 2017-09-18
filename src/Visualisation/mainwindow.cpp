@@ -14,12 +14,14 @@ MainWindow::MainWindow(ros::NodeHandle &n, QWidget *parent) :
     std::string raw_path;
     std::string directions;
     std::string direction_pts;
+    std::string shutdown_name;
 
     _n.getParam("/visualiser/errors/a_star", error_out_a_star);
     _n.getParam("/visualiser/errors/main_path", error_out_main);
     _n.getParam("/visualiser/paths/a_star", raw_path);
     _n.getParam("/visualiser/paths/main_path", directions);
     _n.getParam("/visualiser/paths/main_path_points", direction_pts);
+    _n.getParam("/visualiser/shutdown", shutdown_name);
 
     _path_sub = _n.subscribe(raw_path.c_str(), 1, &MainWindow::path_callback,this);
     _error_a_start_sub = _n.subscribe(error_out_a_star.c_str(),1, &MainWindow::a_start_error_callback, this);
@@ -29,6 +31,7 @@ MainWindow::MainWindow(ros::NodeHandle &n, QWidget *parent) :
 
     _start_point_pub = _n.advertise<geometry_msgs::Point>("/capstone/path/start", 1);
     _end_point_pub = _n.advertise<geometry_msgs::Point>("/capstone/path/end", 1);
+    _shutdown_pub = _n.advertise<std_msgs::Bool>(shutdown_name.c_str(), 1);
 
 
     QString fileName = "/home/denis/catkin_ws/src/a_start/data/map4.png"; /*QFileDialog::getOpenFileName(this,"Open Image File",QDir::currentPath())*/
@@ -407,4 +410,14 @@ void MainWindow::on_ch_disp_error_clicked(bool checked)
     {
         _error_show = false;
     }
+}
+
+void MainWindow::on_bu_shutdown_clicked()
+{
+    std_msgs::Bool shutdown;
+    shutdown.data = true;
+
+    _shutdown_pub.publish(shutdown);
+
+    MainWindow::close();
 }

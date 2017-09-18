@@ -10,6 +10,7 @@
 #include "opencv2/opencv.hpp"
 #include "geometry_msgs/Pose.h"
 #include "std_msgs/String.h"
+#include "std_msgs/Bool.h"
 
 class path
 {
@@ -60,6 +61,7 @@ private:
     void start_point_callback(const geometry_msgs::PointConstPtr &start_msg);
     void end_point_callback(const geometry_msgs::PointConstPtr &end_msg);
     void print_h(std::vector<node> &node_list);
+    void shutdown(const std_msgs::BoolConstPtr &msg);
 
     double distance_between_nodes(node &node1, node &node2);
 
@@ -90,6 +92,7 @@ private:
     ros::Publisher _error_pub;
     ros::Subscriber _start_sub;
     ros::Subscriber _end_sub;
+    ros::Subscriber _shutdown_sub;
 
     cv::Mat img_open;
 

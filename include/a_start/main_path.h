@@ -3,6 +3,7 @@
 
 #include <ros/ros.h>
 #include "std_msgs/String.h"
+#include "std_msgs/Bool.h"
 #include <string>
 #include "geometry_msgs/PoseArray.h"
 #include "geometry_msgs/Pose.h"
@@ -20,6 +21,7 @@ private://methods
     void set_line_of_sights(geometry_msgs::Point start, geometry_msgs::Point goal);
     void set_distances(geometry_msgs::Point start, geometry_msgs::Point goal);
     void publish_pts(std::vector<cv::Point2f> &list);
+    void shutdown(const std_msgs::BoolConstPtr &msg);
 
     //Returns BOOL
     bool check_intersection(cv::Point2f &pt1, cv::Point2f &pt2);
@@ -63,6 +65,7 @@ private://members
     ros::Publisher _path_points_pub;
 
     ros::Subscriber _path_sub;
+    ros::Subscriber _shutdown_sub;
 
     geometry_msgs::PoseArray _a_star_path;
 

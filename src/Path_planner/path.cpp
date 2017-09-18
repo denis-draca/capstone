@@ -9,9 +9,11 @@ path::path(ros::NodeHandle nh):
 
     std::string error_out;
     std::string path_output;
+    std::string shutdown_name;
 
     _n.getParam("/a_star/errors/a_star", error_out);
     _n.getParam("/a_star/paths/a_star", path_output);
+    _n.getParam("/a_star/shutdown", shutdown_name);
 
     _start_id = -1;
     _end_id = -1;
@@ -22,6 +24,7 @@ path::path(ros::NodeHandle nh):
 
     _start_sub = _n.subscribe("/capstone/path/start", 1, &path::start_point_callback, this);
     _end_sub = _n.subscribe("/capstone/path/end", 1, &path::end_point_callback, this);
+    _shutdown_sub = _n.subscribe(shutdown_name.c_str(), 1, &path::shutdown, this);
 
     img_open = cv::imread("/home/denis/catkin_ws/src/a_start/data/map4.png", CV_LOAD_IMAGE_COLOR);
     img_for_path = cv::imread("/home/denis/catkin_ws/src/a_start/data/map4.png", CV_LOAD_IMAGE_GRAYSCALE);
@@ -39,6 +42,10 @@ path::path(ros::NodeHandle nh):
 
 int path::find_path()
 {
+    if(!ros::ok())
+    {
+        return 0;
+    }
     std_msgs::String error_str;
 
     ROS_INFO("Resetting nodes");
@@ -506,6 +513,15 @@ void path::print_h(std::vector<node> &node_list)
 
     cv::imshow("H", img);
     cv::waitKey(3);
+}
+
+void path::shutdown(const std_msgs::BoolConstPtr &msg)
+{
+    std_msgs::String error_str;
+    error_str.data = "GOING FOR SHUTDOWN";
+    _error_pub.publish(error_str);
+
+    ros::shutdown();
 }
 
 double path::distance_between_nodes(path::node &node1, path::node &node2)

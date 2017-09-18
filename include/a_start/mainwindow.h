@@ -16,6 +16,7 @@
 #include "geometry_msgs/PoseArray.h"
 #include <string>
 #include "std_msgs/String.h"
+#include "std_msgs/Bool.h"
 
 namespace Ui {
 class MainWindow;
@@ -63,6 +64,8 @@ private slots:
 
     void on_ch_disp_error_clicked(bool checked);
 
+    void on_bu_shutdown_clicked();
+
 private: // members
     Ui::MainWindow *ui;
 
@@ -87,6 +90,7 @@ private: // members
 
     ros::Publisher _start_point_pub;
     ros::Publisher _end_point_pub;
+    ros::Publisher _shutdown_pub;
 
     std::vector<std::pair<int,int>> _landmarks;
 
