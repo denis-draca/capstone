@@ -127,6 +127,8 @@ void main_path::set_distances(geometry_msgs::Point start, geometry_msgs::Point g
         temp.dist_to_goal = distance_between_two_points(pt_landmark, pt_goal);
 
         temp.already_passed = false;
+        temp.closed = false;
+        temp.open = false;
 
         _landmark_list.at(i) = temp;
     }
@@ -161,6 +163,17 @@ void main_path::shutdown(const std_msgs::BoolConstPtr &msg)
     ros::shutdown();
 }
 
+void main_path::set_closed(main_path::landmark &land)
+{
+    for(int i = 0; i < _landmark_list.size(); i++)
+    {
+        if(land.name.compare(_landmark_list.at(i).name))
+        {
+            _landmark_list.at(i).closed = true;
+        }
+    }
+}
+
 double main_path::distance_between_two_points(cv::Point2f &pt1, cv::Point2f &pt2)
 {
     double dist;
@@ -168,6 +181,22 @@ double main_path::distance_between_two_points(cv::Point2f &pt1, cv::Point2f &pt2
     dist = sqrt(pow(pt1.x - pt2.x , 2) + pow(pt1.y - pt2.y , 2));
 
     return dist;
+}
+
+double main_path::distance_between_two_landmarks(main_path::landmark &land1, main_path::landmark &land2)
+{
+    cv::Point2f pt1;
+    cv::Point2f pt2;
+
+
+    pt1.x = land1.x;
+    pt1.y = land1.y;
+
+    pt2.x = land2.x;
+    pt2.y = land2.y;
+
+
+    return distance_between_two_points(pt2,pt1);
 }
 
 cv::Point2f main_path::landmark_position(std::string &landmark_name)
@@ -329,6 +358,76 @@ bool main_path::closest_to_goal(std::string &closest_name)
     closest_name = name;
 
     return closest_can_see_goal;
+}
+
+bool main_path::check_linked_landmarks(std::vector<std::string> &linked_list, std::string &closest_landmark)
+{
+    landmark last_one;
+    bool linked = false;
+
+    for(int i = 0; i < _landmark_list.size(); i++)
+    {
+        if(_landmark_list.at(i).name.compare(closest_landmark))
+        {
+            last_one = _landmark_list.at(i);
+        }
+    }
+
+
+    std::vector<landmark> closed_list;
+    std::vector<landmark> open_list;
+
+    open_list.push_back(last_one);
+
+    while(!open_list.empty())
+    {
+        closed_list.push_back(open_list.back());
+        open_list.pop_back();
+
+        landmark current = closed_list.back();
+        set_closed(current);
+
+        if(current.start_line_of_sight)
+        {
+            linked = true;
+        }
+
+        for(int i = 0; i < _landmark_list.size(); i++)
+        {
+            if(_landmark_list.at(i).closed)
+                continue;
+
+            if(line_of_sight(current, _landmark_list.at(i)))
+            {
+                _landmark_list.at(i).cost = distance_between_two_landmarks(current, _landmark_list.at(i))
+                open_list.push_back(_landmark_list.at(i));
+            }
+        }
+    }
+
+
+
+
+    return linked;
+}
+
+bool main_path::line_of_sight(main_path::landmark &land1, main_path::landmark &land2)
+{
+    cv::Point2f pt1;
+    cv::Point2f pt2;
+
+
+    pt1.x = land1.x;
+    pt1.y = land1.y;
+
+    pt2.x = land2.x;
+    pt2.y = land2.y;
+
+
+    if(check_intersection(pt1,pt2))
+        return false;
+
+    return true;
 }
 
 double main_path::max(double x, double y)

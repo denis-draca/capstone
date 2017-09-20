@@ -22,6 +22,7 @@ private://methods
     void set_distances(geometry_msgs::Point start, geometry_msgs::Point goal);
     void publish_pts(std::vector<cv::Point2f> &list);
     void shutdown(const std_msgs::BoolConstPtr &msg);
+    void set_closed(landmark &land);
 
     //Returns BOOL
     bool check_intersection(cv::Point2f &pt1, cv::Point2f &pt2);
@@ -29,11 +30,15 @@ private://methods
     bool landmark_can_see_goal(std::string &landmark_name);
     bool landmark_can_see_start(std::string &landmark_name);
     bool closest_to_goal(std::string &closest_name);
+    bool check_linked_landmarks(std::vector<std::string> &linked_list, std::string &closest_landmark);
+    bool line_of_sight(landmark &land1, landmark &land2);
 
     //Returns Double
     double max(double x, double y);
     double min(double x, double y);
     double distance_between_two_points(cv::Point2f &pt1, cv::Point2f &pt2);
+    double distance_between_two_landmarks(landmark &land1, landmark &land2);
+
 
     //pt returns
 
@@ -55,7 +60,9 @@ private://members
         double dist_to_start;
         double dist_to_goal;
 
-
+        bool closed;
+        bool open;
+        double cost;
 
     };
 
