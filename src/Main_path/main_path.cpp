@@ -287,6 +287,50 @@ bool main_path::landmark_can_see_goal(std::string &landmark_name)
     _error_pub.publish(str_err);
 }
 
+bool main_path::landmark_can_see_start(std::string &landmark_name)
+{
+    for(int i = 0; i < _landmark_list.size(); i++)
+    {
+        landmark temp = _landmark_list.at(i);
+
+        if(!temp.name.compare(landmark_name))
+        {
+           return temp.start_line_of_sight;
+        }
+    }
+
+    std_msgs::String str_err;
+
+    str_err.data = "The landmark was not found within the list of landmarks. Chosen landmark must be wrong";
+
+    _error_pub.publish(str_err);
+}
+
+bool main_path::closest_to_goal(std::string &closest_name)
+{
+    double smallest = _landmark_list.front().dist_to_goal;
+    std::string name = _landmark_list.front().name;
+
+    bool closest_can_see_goal = _landmark_list.front().goal_line_of_sight;
+
+    for(int i = 1; i < _landmark_list.size(); i++)
+    {
+        landmark temp = _landmark_list.at(i);
+
+        if(temp.dist_to_goal < smallest && temp.goal_line_of_sight)
+        {
+            smallest = temp.dist_to_goal;
+            name = temp.name;
+            closest_can_see_goal = temp.goal_line_of_sight;
+        }
+
+    }
+
+    closest_name = name;
+
+    return closest_can_see_goal;
+}
+
 double main_path::max(double x, double y)
 {
     if(x > y)
@@ -340,49 +384,49 @@ void main_path::find_steps()
 
     point_list.push_back(_path_pts.front());
 
-    for(upto; upto < _path_pts.size(); upto++)
+
+    //----------------------------------------------------------------------------
+    //                              New Path Here
+    //----------------------------------------------------------------------------
+
+    bool goal_found = false;
+
+    std::string closest_landmark;
+    bool landmark_can_see = closest_to_goal(closest_landmark);
+
+    if(!check_intersection(_path_pts.front(), _path_pts.back()))
     {
-        if(!check_intersection(_path_pts.at(upto), _path_pts.back()))
-        {
-            if(upto == 0)
-            {
-                directions.append("\n");
-                directions.append("You can see the goal from here");
-            }
-            else
-            {
-                point_list.push_back(_path_pts.at(upto));
-                directions.append("\n");
-                directions.append("After this point, you should be able to see the goal");
-            }
-
-            found = true;
-            break;
-        }
-        std::string closest_landmark;
-        if(can_i_see_a_landmark(_path_pts.at(upto), closest_landmark))
-        {
-            point_list.push_back(_path_pts.at(upto));
-            point_list.push_back(landmark_position(closest_landmark));
-
-            directions.append("\n");
-            directions.append("Go in this directions (**point to direction**), you should be able to see ");
-            directions.append(closest_landmark.c_str());
-            directions.append(" from there");
-
-            directions.append(" go past ");
-            directions.append(closest_landmark.c_str());
-
-            if(landmark_can_see_goal(closest_landmark))
-            {
-                directions.append("\n");
-
-                directions.append("goal can be seen from ");
-                directions.append(closest_landmark.c_str());
-                break;
-            }
-        }
+        directions.append("\nYou can see the goal from here");
+        goal_found = true;
     }
+    else if(landmark_can_see)
+    {
+        if(landmark_can_see_start(closest_landmark))
+        {
+            directions.append("\nGo past ");
+            directions.append(closest_landmark);
+            directions.append(" You can see the goal from there");
+
+            point_list.push_back(landmark_position(closest_landmark));
+            goal_found = true;
+        }
+        else if()
+    }
+
+    int upto = 0;
+
+    while(!goal_found)
+    {
+
+    }
+
+
+
+    //----------------------------------------------------------------------------
+    //                              End New Path Here
+    //----------------------------------------------------------------------------
+
+
 
     point_list.push_back(_path_pts.back());
     std_msgs::String msg;

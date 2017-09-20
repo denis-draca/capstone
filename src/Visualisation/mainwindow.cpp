@@ -5,8 +5,6 @@ MainWindow::MainWindow(ros::NodeHandle &n, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow), _n(n)
 {
-
-    //new directions
     ui->setupUi(this);
 
     multiplier = 8;
