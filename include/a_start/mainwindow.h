@@ -17,6 +17,7 @@
 #include <string>
 #include "std_msgs/String.h"
 #include "std_msgs/Bool.h"
+#include <fstream>
 
 namespace Ui {
 class MainWindow;
@@ -74,6 +75,8 @@ private slots:
     void on_bu_set_dir_directions_clicked();
 
     void on_bu_screenshot_directions_clicked();
+
+    void on_bu_user_submit_clicked();
 
 private: // members
     Ui::MainWindow *ui;

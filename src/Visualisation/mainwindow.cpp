@@ -480,7 +480,7 @@ void MainWindow::on_bu_set_dir_directions_clicked()
 void MainWindow::on_bu_screenshot_directions_clicked()
 {
     std::string file_name = ui->in_screenshot_directions->text().toUtf8().constData();
-    std::string dir = _astar_screenshot_dir.toUtf8().constData();
+    std::string dir = _directions_screenshot_dir.toUtf8().constData();
 
     if(file_name.empty())
         ui->out_MAIN_error->setText("No name given for screenshot");
@@ -494,6 +494,86 @@ void MainWindow::on_bu_screenshot_directions_clicked()
     std::string directions_img_dir = dir;
     std::string directions_path_dir = dir;
     std::string raw_path = dir;
+
+    directions_img_dir.append(".jpg");
+    directions_path_dir.append("(string).txt");
+    raw_path.append("(raw_path).jpg");
+
+
+    cv::imwrite(directions_img_dir.c_str(), _directions_map);
+    cv::imwrite(raw_path.c_str(), _resized_a_star);
+
+    std::ofstream file;
+    file.open(directions_path_dir.c_str());
+
+    file << _direction_list;
+
+    file.close();
+
+
+}
+
+void MainWindow::on_bu_user_submit_clicked()
+{
+    std::string name = ui->in_user_name->text().toUtf8().constData();
+    std::string directions = ui->in_user_direction->toPlainText().toUtf8().constData();
+
+    if(name.empty() || directions.empty() || directions == "Please input some text")
+    {
+        ui->in_user_direction->setText("Please input some text");
+        return;
+    }
+
+    std::string location = QFileDialog::getExistingDirectory(this, "Save user input").toUtf8().constData();
+
+    std::ofstream file;
+
+    location.append("/");
+    location.append(name);
+
+    if(!QDir().exists(location.c_str()))
+        QDir().mkdir(location.c_str());
+
+    location.append("/");
+    location.append(name);
+
+    std::string raw_path = location;
+    std::string direction_path = location;
+    std::string direction_list = location;
+    std::string landmarks = location;
+
+    raw_path.append("(raw_path).jpg");
+    direction_path.append("(direction_path).jpg");
+    direction_list.append("(listed_paths).txt");
+    landmarks.append("(landmarks).jpg");
+
+    cv::imwrite(raw_path.c_str(), _resized_a_star);
+    cv::imwrite(direction_path.c_str(), _directions_map);
+    cv::imwrite(landmarks.c_str(), _landmark_map);
+
+
+    location.append(".txt");
+
+    file.open(location);
+
+    file << "Name: " << name << std::endl;
+
+    file << "start (x,y): " << "(" << _start_x << "," << _start_y << ")" << std::endl;
+    file << "end (x,y): " << "(" << _end_x << "," << _end_y << ")" << std::endl;
+
+    file << "USER INSTRUCTIONS START HERE -----------" << std::endl;
+
+    file << directions;
+
+    file.close();
+
+
+
+
+    file.open(direction_list);
+
+    file << _direction_list;
+    file.close();
 
 
 }
