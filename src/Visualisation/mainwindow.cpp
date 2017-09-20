@@ -71,6 +71,12 @@ MainWindow::MainWindow(ros::NodeHandle &n, QWidget *parent) :
     _timer->start(100);
 
     _error_show = true;
+
+
+    //Directory member setup
+    _astar_screenshot_dir = "/home/denis/catkin_ws/src/a_start/for Report";
+    _directions_screenshot_dir = "/home/denis/catkin_ws/src/a_start/for Report";
+    _landmarks_screenshot_dir = "/home/denis/catkin_ws/src/a_start/for Report";
 }
 
 cv::Mat MainWindow::QImage2Mat(const QImage &src)
@@ -82,19 +88,46 @@ cv::Mat MainWindow::QImage2Mat(const QImage &src)
     //    return result;
 }
 
+cv::Mat MainWindow::resize_to_multipler(cv::Mat &small_img)
+{
+    int scale_factor = multiplier;
+    cv::Mat larger_img(small_img.rows * scale_factor, small_img.cols*scale_factor, CV_8UC3, cv::Scalar(0,0,0));
+
+    for(int y = 0; y < small_img.rows; y++)
+    {
+        for(int x = 0; x < small_img.cols; x++)
+        {
+            cv::Vec3b cell = small_img.at<cv::Vec3b>(y,x);
+
+            for(int z = (y*scale_factor); z < (y*scale_factor) + (scale_factor); z++)
+            {
+                for(int t = (x*scale_factor) ; t < (x*scale_factor) + (scale_factor); t++)
+                {
+                    if(z >= 0 && z < larger_img.rows && t >=0 && t < larger_img.cols)
+                    {
+                        larger_img.at<cv::Vec3b>(z,t) = cell;
+                    }
+                }
+            }
+        }
+    }
+
+    return larger_img;
+
+
+
+}
+
 void MainWindow::path_callback(const geometry_msgs::PoseArrayConstPtr &msg)
 {
 
     geometry_msgs::PoseArray derivedMsg = *msg;
 
-    cv::Mat temp;
-
     cv::Mat display_path = path_to_img(derivedMsg);
 
-    cv::Size size(display_path.cols * multiplier, display_path.rows * multiplier);
-    cv::resize(display_path, temp, size);
+    _resized_a_star = resize_to_multipler(display_path);
 
-    ui->img_label->setPixmap(QPixmap::fromImage(Mat2QImage(temp)));
+    ui->img_label->setPixmap(QPixmap::fromImage(Mat2QImage(_resized_a_star)));
 }
 
 cv::Mat MainWindow::path_to_img(geometry_msgs::PoseArray &path)
@@ -210,16 +243,12 @@ void MainWindow::display_landmarks()
         pt.x = temp.first;
         pt.y = temp.second;
 
-//        ROS_ERROR("X %d Y %d", temp.first, temp.second);
         cv::circle(landmark_disp, pt, 1, cv::Scalar(50, 100, 200));
     }
 
-    cv::Mat temp;
+    _landmark_map = resize_to_multipler(landmark_disp);
 
-    cv::Size size(landmark_disp.cols * multiplier, landmark_disp.rows * multiplier);
-    cv::resize(landmark_disp, temp, size);
-
-    ui->img_landmarks->setPixmap(QPixmap::fromImage(Mat2QImage(temp)));
+    ui->img_landmarks->setPixmap(QPixmap::fromImage(Mat2QImage(_landmark_map)));
 
 }
 
@@ -243,8 +272,8 @@ void MainWindow::main_path_error_callback(const std_msgs::String &msg)
 
 void MainWindow::directions_callback(const std_msgs::String &msg)
 {
-    std::string str = msg.data;
-    ui->out_directions->setText(str.c_str());
+    _direction_list = msg.data;
+    ui->out_directions->setText(_direction_list.c_str());
 }
 
 void MainWindow::direction_pts_callback(const geometry_msgs::PoseArrayConstPtr &msg)
@@ -271,12 +300,8 @@ void MainWindow::direction_pts_callback(const geometry_msgs::PoseArrayConstPtr &
         cv::circle(img, pt, 1, cv::Scalar(200,100,100));
     }
 
-    cv::Mat temp;
-
-    cv::Size size(img.cols * multiplier, img.rows * multiplier);
-    cv::resize(img, temp, size);
-
-    ui->img_directions->setPixmap(QPixmap::fromImage(Mat2QImage(temp)));
+    _directions_map = resize_to_multipler(img);
+    ui->img_directions->setPixmap(QPixmap::fromImage(Mat2QImage(_directions_map)));
 
 }
 
@@ -420,4 +445,55 @@ void MainWindow::on_bu_shutdown_clicked()
     _shutdown_pub.publish(shutdown);
 
     MainWindow::close();
+}
+
+
+void MainWindow::on_bu_set_dir_clicked()
+{
+    _astar_screenshot_dir = QFileDialog::getExistingDirectory(this, "set A* screenshot path");
+}
+
+void MainWindow::on_bu_screenshot_aStar_clicked()
+{
+    std::string file_name = ui->in_screenshot->text().toUtf8().constData();
+    std::string dir = _astar_screenshot_dir.toUtf8().constData();
+
+    if(file_name.empty())
+        ui->out_ASTART_error->setText("No name given for screenshot");
+
+    if(_resized_a_star.empty())
+        ui->out_ASTART_error->setText("No image to take a screenshot of");
+
+    dir.append("/");
+    dir.append(file_name.c_str());
+    dir.append(".jpg");
+
+    cv::imwrite(dir.c_str(), _resized_a_star);
+
+}
+
+void MainWindow::on_bu_set_dir_directions_clicked()
+{
+    _directions_screenshot_dir = QFileDialog::getExistingDirectory(this, "Set direction screenshot path");
+}
+
+void MainWindow::on_bu_screenshot_directions_clicked()
+{
+    std::string file_name = ui->in_screenshot_directions->text().toUtf8().constData();
+    std::string dir = _astar_screenshot_dir.toUtf8().constData();
+
+    if(file_name.empty())
+        ui->out_MAIN_error->setText("No name given for screenshot");
+
+    if(_resized_a_star.empty())
+        ui->out_MAIN_error->setText("No image to take a screenshot of");
+
+    dir.append("/");
+    dir.append(file_name.c_str());
+
+    std::string directions_img_dir = dir;
+    std::string directions_path_dir = dir;
+    std::string raw_path = dir;
+
+
 }

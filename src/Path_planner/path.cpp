@@ -98,7 +98,8 @@ int path::find_path()
 
         if(current.id == end.id)
         {
-            //done
+            //donet
+            closed_list.push_back(current);
             std::cout << "FOUND" << std::endl;
             break;
         }
@@ -129,7 +130,7 @@ int path::find_path()
             }
 
 
-            neighbour.g_score = distance_between_nodes(current, neighbour);
+            neighbour.g_score = /*temp_g_score;*/distance_between_nodes(current, neighbour);
             neighbour.f_score = neighbour.g_score + distance_between_nodes(neighbour, end);
 
 

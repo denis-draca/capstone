@@ -31,6 +31,7 @@ private: //methods
 
     QImage Mat2QImage(cv::Mat const& src);
     cv::Mat QImage2Mat(QImage const& src);
+    cv::Mat resize_to_multipler(cv::Mat &small_img);
 
     void path_callback(const geometry_msgs::PoseArrayConstPtr &msg);
     cv::Mat path_to_img(geometry_msgs::PoseArray &path);
@@ -66,12 +67,23 @@ private slots:
 
     void on_bu_shutdown_clicked();
 
+    void on_bu_set_dir_clicked();
+
+    void on_bu_screenshot_aStar_clicked();
+
+    void on_bu_set_dir_directions_clicked();
+
+    void on_bu_screenshot_directions_clicked();
+
 private: // members
     Ui::MainWindow *ui;
 
     ros::NodeHandle _n;
 
     cv::Mat path_img;
+    cv::Mat _resized_a_star;
+    cv::Mat _landmark_map;
+    cv::Mat _directions_map;
 
     int multiplier;
 
@@ -96,8 +108,15 @@ private: // members
 
     std::string _a_start_error;
     std::string _main_path_error;
+    std::string _direction_list;
+
+    QString _astar_screenshot_dir;
+    QString _directions_screenshot_dir;
+    QString _landmarks_screenshot_dir;
 
     bool _error_show;
+
+
 
 
 };
