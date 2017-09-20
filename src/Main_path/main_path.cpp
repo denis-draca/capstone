@@ -399,7 +399,7 @@ bool main_path::check_linked_landmarks(std::vector<std::string> &linked_list, st
 
             if(line_of_sight(current, _landmark_list.at(i)))
             {
-                _landmark_list.at(i).cost = distance_between_two_landmarks(current, _landmark_list.at(i))
+                _landmark_list.at(i).cost = distance_between_two_landmarks(current, _landmark_list.at(i));
                 open_list.push_back(_landmark_list.at(i));
             }
         }
@@ -509,10 +509,7 @@ void main_path::find_steps()
             point_list.push_back(landmark_position(closest_landmark));
             goal_found = true;
         }
-        else if()
     }
-
-    int upto = 0;
 
     while(!goal_found)
     {

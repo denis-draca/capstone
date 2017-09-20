@@ -12,6 +12,28 @@
 
 class main_path
 {
+
+private:// any structs belonging to this class
+    struct landmark{
+        double x;
+        double y;
+
+        std::string name;
+
+        bool goal_line_of_sight;
+        bool start_line_of_sight;
+        bool already_passed;
+
+        double dist_to_start;
+        double dist_to_goal;
+
+        bool closed;
+        bool open;
+        double cost;
+
+    };
+
+
 private://methods
     main_path();
 
@@ -46,25 +68,6 @@ private://methods
 
 
 private://members
-
-    struct landmark{
-        double x;
-        double y;
-
-        std::string name;
-
-        bool goal_line_of_sight;
-        bool start_line_of_sight;
-        bool already_passed;
-
-        double dist_to_start;
-        double dist_to_goal;
-
-        bool closed;
-        bool open;
-        double cost;
-
-    };
 
     //ROS STUFF
     ros::NodeHandle _n;
