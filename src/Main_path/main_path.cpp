@@ -566,9 +566,33 @@ void main_path::find_steps()
         }
     }
 
-    while(!goal_found)
+    if(!goal_found)
     {
+        for(int upto = 0; upto < _path_pts.size(); upto++)
+        {
+            if(can_i_see_a_landmark(_path_pts.at(upto), closest_landmark))
+            {
+                point_list.push_back(_path_pts.at(upto));
+                point_list.push_back(landmark_position(closest_landmark));
 
+                directions.append("\n");
+                directions.append("Go in this directions (**point to direction**), you should be able to see ");
+                directions.append(closest_landmark.c_str());
+                directions.append(" from there");
+
+                directions.append(" go past ");
+                directions.append(closest_landmark.c_str());
+
+                if(landmark_can_see_goal(closest_landmark))
+                {
+                    directions.append("\n");
+
+                    directions.append("goal can be seen from ");
+                    directions.append(closest_landmark.c_str());
+                    break;
+                }
+            }
+        }
     }
 
 
