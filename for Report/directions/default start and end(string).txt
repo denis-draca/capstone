@@ -1,0 +1,3 @@
+Path Directions: 
+Go in this directions (**point to direction**), you should be able to see landmark_0 from there go past landmark_0
+goal can be seen from landmark_0
