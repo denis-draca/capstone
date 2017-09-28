@@ -133,19 +133,6 @@
        <string>Clear ERRORs</string>
       </property>
      </widget>
-<<<<<<< HEAD
-     <widget class="QCheckBox" name="checkBox">
-      <property name="geometry">
-       <rect>
-        <x>740</x>
-        <y>50</y>
-        <width>161</width>
-        <height>22</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Update Error Boxes</string>
-=======
      <widget class="QCheckBox" name="ch_disp_error">
       <property name="geometry">
        <rect>
@@ -157,7 +144,6 @@
       </property>
       <property name="text">
        <string>Update Error Boxs</string>
->>>>>>> new_directions
       </property>
       <property name="checked">
        <bool>true</bool>

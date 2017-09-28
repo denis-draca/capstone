@@ -64,9 +64,8 @@ private slots:
 
     void on_bu_clear_clicked();
 
-<<<<<<< HEAD
+private slots:
     void on_checkBox_clicked(bool checked);
-=======
     void on_ch_disp_error_clicked(bool checked);
 
     void on_bu_shutdown_clicked();
@@ -80,7 +79,6 @@ private slots:
     void on_bu_screenshot_directions_clicked();
 
     void on_bu_user_submit_clicked();
->>>>>>> new_directions
 
 private: // members
     Ui::MainWindow *ui;
