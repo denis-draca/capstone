@@ -174,6 +174,22 @@ void main_path::set_closed(main_path::landmark &land)
     }
 }
 
+void main_path::sort(std::vector<main_path::landmark> &list)
+{
+    for(int i = 0; i < list.size() - 1; i++)
+    {
+        for(int x = 0; x < list.size() - i - 1; x++)
+        {
+            if(list.at(x).cost < list.at(x + 1).cost)
+            {
+                landmark temp = list.at(x);
+                list.at(x) = list.at(x + 1);
+                list.at(x + 1) = temp;
+            }
+        }
+    }
+}
+
 double main_path::distance_between_two_points(cv::Point2f &pt1, cv::Point2f &pt2)
 {
     double dist;
@@ -381,6 +397,7 @@ bool main_path::check_linked_landmarks(std::vector<std::string> &linked_list, st
 
     while(!open_list.empty())
     {
+        sort(open_list);
         closed_list.push_back(open_list.back());
         open_list.pop_back();
 
@@ -390,6 +407,7 @@ bool main_path::check_linked_landmarks(std::vector<std::string> &linked_list, st
         if(current.start_line_of_sight)
         {
             linked = true;
+            break;
         }
 
         for(int i = 0; i < _landmark_list.size(); i++)
@@ -397,12 +415,35 @@ bool main_path::check_linked_landmarks(std::vector<std::string> &linked_list, st
             if(_landmark_list.at(i).closed)
                 continue;
 
-            if(line_of_sight(current, _landmark_list.at(i)))
+            if(line_of_sight(current, _landmark_list.at(i)) && !_landmark_list.at(i).open)
             {
                 _landmark_list.at(i).cost = distance_between_two_landmarks(current, _landmark_list.at(i));
+                _landmark_list.at(i).open = true;
                 open_list.push_back(_landmark_list.at(i));
             }
         }
+    }
+
+    if(linked)
+    {
+        while(!closed_list.empty())
+        {
+            std::string str;
+
+            landmark temp = closed_list.back();
+            closed_list.pop_back();
+
+            str = temp.name;
+
+            if(temp.goal_line_of_sight)
+            {
+                linked_list.push_back(str);
+                break;
+            }
+
+            linked_list.push_back(str);
+        }
+
     }
 
 
@@ -492,6 +533,7 @@ void main_path::find_steps()
 
     std::string closest_landmark;
     bool landmark_can_see = closest_to_goal(closest_landmark);
+    std::vector<std::string> list;
 
     if(!check_intersection(_path_pts.front(), _path_pts.back()))
     {
@@ -507,6 +549,19 @@ void main_path::find_steps()
             directions.append(" You can see the goal from there");
 
             point_list.push_back(landmark_position(closest_landmark));
+            goal_found = true;
+        }
+        else if(check_linked_landmarks(list, closest_landmark))
+        {
+            for(int i = 0; i < list.size(); i++)
+            {
+                directions.append("\nGo past ");
+                directions.append(list.at(i));
+
+                point_list.push_back(landmark_position(list.at(i)));
+            }
+
+            directions.append(" You can see the goal from there");
             goal_found = true;
         }
     }

@@ -45,6 +45,7 @@ private://methods
     void publish_pts(std::vector<cv::Point2f> &list);
     void shutdown(const std_msgs::BoolConstPtr &msg);
     void set_closed(landmark &land);
+    void sort(std::vector<landmark> &list);
 
     //Returns BOOL
     bool check_intersection(cv::Point2f &pt1, cv::Point2f &pt2);
