@@ -53,6 +53,7 @@ public:
     explicit MainWindow(ros::NodeHandle &n, QWidget *parent = 0);
     ~MainWindow();
 
+
 private slots:
     void on__bu_find_path_clicked();
 
@@ -82,6 +83,13 @@ private slots:
     void on_bu_user_submit_clicked();
 
     void on_slide_shifter_sliderMoved(int position);
+
+
+    void on_slide_shifter_y_sliderMoved(int position);
+
+    void on_slide_start_x_sliderMoved(int position);
+
+    void on_slide_start_y_sliderMoved(int position);
 
 private: // members
     Ui::MainWindow *ui;
@@ -125,10 +133,8 @@ private: // members
     QMessageBox _error_box;
 
     bool _error_show;
-
-
-
     bool _display_err;
+    bool _set_slider;
 
 };
 

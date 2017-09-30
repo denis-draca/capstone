@@ -361,27 +361,13 @@
       <x>960</x>
       <y>40</y>
       <width>237</width>
-      <height>162</height>
+      <height>331</height>
      </rect>
     </property>
     <layout class="QFormLayout" name="formLayout_2">
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>End Point(x,y)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <widget class="QLineEdit" name="in_end_x"/>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="in_end_y"/>
-       </item>
-      </layout>
-     </item>
+     <property name="fieldGrowthPolicy">
+      <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+     </property>
      <item row="0" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
@@ -399,6 +385,23 @@
        </item>
       </layout>
      </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>End Point(x,y)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QLineEdit" name="in_end_x"/>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="in_end_y"/>
+       </item>
+      </layout>
+     </item>
      <item row="2" column="0" colspan="2">
       <widget class="QPushButton" name="_bu_find_path">
        <property name="text">
@@ -406,22 +409,57 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="0">
-      <widget class="QCheckBox" name="ch_shift_end_X">
+     <item row="7" column="0">
+      <widget class="QLabel" name="label_12">
        <property name="text">
-        <string>Shift End x</string>
+        <string>Shift end X</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
-      <widget class="QCheckBox" name="ch_shift_end_y">
+     <item row="8" column="0" colspan="2">
+      <widget class="QSlider" name="slide_shifter">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="0">
+      <widget class="QLabel" name="label_13">
        <property name="text">
-        <string>Shift End y</string>
+        <string>Shift end Y</string>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="0" colspan="2">
+      <widget class="QSlider" name="slide_shifter_y">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_14">
+       <property name="text">
+        <string>Shift start X</string>
        </property>
       </widget>
      </item>
      <item row="4" column="0" colspan="2">
-      <widget class="QSlider" name="slide_shifter">
+      <widget class="QSlider" name="slide_start_x">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_15">
+       <property name="text">
+        <string>Shift start Y</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0" colspan="2">
+      <widget class="QSlider" name="slide_start_y">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>

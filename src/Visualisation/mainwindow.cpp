@@ -71,12 +71,13 @@ MainWindow::MainWindow(ros::NodeHandle &n, QWidget *parent) :
     _timer->start(100);
 
     _error_show = true;
-
+    _set_slider = true;
 
     //Directory member setup
     _astar_screenshot_dir = "/home/denis/catkin_ws/src/a_start/for Report";
     _directions_screenshot_dir = "/home/denis/catkin_ws/src/a_start/for Report";
     _landmarks_screenshot_dir = "/home/denis/catkin_ws/src/a_start/for Report";
+
 }
 
 cv::Mat MainWindow::QImage2Mat(const QImage &src)
@@ -297,6 +298,14 @@ void MainWindow::direction_pts_callback(const geometry_msgs::PoseArrayConstPtr &
         pt.x = pt_list.poses.at(i).position.x;
         pt.y = pt_list.poses.at(i).position.y;
 
+        if(i != pt_list.poses.size() - 1)
+        {
+            cv::Point2f pt2;
+            pt2.x = pt_list.poses.at(i + 1).position.x;
+            pt2.y = pt_list.poses.at(i + 1).position.y;
+            cv::line(img, pt, pt2, cv::Scalar(0,255,255));
+        }
+
         cv::circle(img, pt, 1, cv::Scalar(200,100,100));
     }
 
@@ -328,33 +337,29 @@ void MainWindow::on__bu_find_path_clicked()
     geometry_msgs::Point end_pt;
 
     bool unset = false;
-    if(!_start_x)
+    if(_start_x == -1)
         unset = true;
-//        start_pt.x = 0;
     else
         start_pt.x = _start_x;
 
-    if(!_start_y)
+    if(_start_y == -1)
         unset = true;
-//        start_pt.y = 0;
     else
         start_pt.y = _start_y;
 
-    if(!_end_x)
+    if(_end_x == -1)
         unset = true;
-//        end_pt.x = 0;
     else
        end_pt.x = _end_x;
 
-    if(!_end_y)
+    if(_end_y == -1)
         unset = true;
-//        end_pt.y = 0;
     else
         end_pt.y = _end_y;
 
     if(unset)
     {
-        QMessageBox::information(this, tr("Direction Generator"), tr("No START or END point given, please make sure to provide both"));
+        QMessageBox::information(this, tr("Direction Generator"), tr("No START and/or END point given, please make sure to provide both"));
         return;
     }
 
@@ -371,6 +376,21 @@ void MainWindow::on__bu_find_path_clicked()
     pt2.x = _end_x;
     pt2.y = _end_y;
 
+    if(_set_slider)
+    {
+        double x_pos = ((double)_end_x/(double)path_img.cols)*100.0;
+        double y_pos = ((double)_end_y/(double)path_img.rows)*100.0;
+
+        double x_pos_start = ((double)_start_x/(double)path_img.cols)*100.0;
+        double y_pos_start = ((double)_start_y/(double)path_img.rows)*100.0;
+
+        ui->slide_shifter->setSliderPosition(x_pos);
+        ui->slide_shifter_y->setSliderPosition(y_pos);
+
+        ui->slide_start_x->setSliderPosition(x_pos_start);
+        ui->slide_start_y->setSliderPosition(y_pos_start);
+    }
+
     cv::circle(display_path, pt1, 1, cv::Scalar(0,255,0));
     cv::circle(display_path, pt2, 1, cv::Scalar(0,0,255));
 
@@ -381,6 +401,7 @@ void MainWindow::on__bu_find_path_clicked()
 
     _start_point_pub.publish(start_pt);
     _end_point_pub.publish(end_pt);
+
 }
 
 void MainWindow::on_horizontalScrollBar_sliderMoved(int position)
@@ -626,27 +647,55 @@ void MainWindow::on_bu_user_submit_clicked()
 
 void MainWindow::on_slide_shifter_sliderMoved(int position)
 {
-//    ui->out_MAIN_error->setText(std::to_string(position).c_str());
 
     double percentage = ((double)position)/100.0;
-    bool x_checked = ui->ch_shift_end_X->isChecked();
-    bool y_checked = ui->ch_shift_end_y->isChecked();
 
+    int value = path_img.cols * percentage;
 
-    if(x_checked)
-    {
-        int value = path_img.cols * percentage;
+    ui->in_end_x->setText(std::to_string(value).c_str());
 
-        ui->in_end_x->setText(std::to_string(value).c_str());
-    }
-
-    if(y_checked)
-    {
-        int value = path_img.rows * percentage;
-
-        ui->in_end_y->setText(std::to_string(value).c_str());
-    }
-
+    _set_slider = false;
     on__bu_find_path_clicked();
+    _set_slider = true;
 
+}
+
+
+void MainWindow::on_slide_shifter_y_sliderMoved(int position)
+{
+    double percentage = ((double)position)/100.0;
+
+    int value = path_img.rows * percentage;
+
+    ui->in_end_y->setText(std::to_string(value).c_str());
+
+    _set_slider = false;
+    on__bu_find_path_clicked();
+    _set_slider = true;
+}
+
+void MainWindow::on_slide_start_x_sliderMoved(int position)
+{
+    double percentage = ((double)position)/100.0;
+
+    int value = path_img.cols * percentage;
+
+    ui->in_start_x->setText(std::to_string(value).c_str());
+
+    _set_slider = false;
+    on__bu_find_path_clicked();
+    _set_slider = true;
+}
+
+void MainWindow::on_slide_start_y_sliderMoved(int position)
+{
+    double percentage = ((double)position)/100.0;
+
+    int value = path_img.rows * percentage;
+
+    ui->in_start_y->setText(std::to_string(value).c_str());
+
+    _set_slider = false;
+    on__bu_find_path_clicked();
+    _set_slider = true;
 }
