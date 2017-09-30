@@ -1,0 +1,7 @@
+Name: Denis Draca
+start (x,y): (0,1376785984)
+end (x,y): (32766,165352743)
+USER INSTRUCTIONS START HERE -----------
+Example direction 1
+Example direction 2
+Example direction 3

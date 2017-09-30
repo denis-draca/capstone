@@ -327,25 +327,36 @@ void MainWindow::on__bu_find_path_clicked()
     geometry_msgs::Point start_pt;
     geometry_msgs::Point end_pt;
 
+    bool unset = false;
     if(!_start_x)
-        start_pt.x = 0;
+        unset = true;
+//        start_pt.x = 0;
     else
         start_pt.x = _start_x;
 
     if(!_start_y)
-        start_pt.y = 0;
+        unset = true;
+//        start_pt.y = 0;
     else
         start_pt.y = _start_y;
 
     if(!_end_x)
-        end_pt.x = 0;
+        unset = true;
+//        end_pt.x = 0;
     else
        end_pt.x = _end_x;
 
     if(!_end_y)
-        end_pt.y = 0;
+        unset = true;
+//        end_pt.y = 0;
     else
         end_pt.y = _end_y;
+
+    if(unset)
+    {
+        QMessageBox::information(this, tr("Direction Generator"), tr("No START or END point given, please make sure to provide both"));
+        return;
+    }
 
     cv::Mat temp;
 
@@ -524,14 +535,32 @@ void MainWindow::on_bu_user_submit_clicked()
 {
     std::string name = ui->in_user_name->text().toUtf8().constData();
     std::string directions = ui->in_user_direction->toPlainText().toUtf8().constData();
+    std::string feedback = ui->in_user_direction_feedback->toPlainText().toUtf8().constData();
 
-    if(name.empty() || directions.empty() || directions == "Please input some text")
+    if(name.empty())
     {
-        ui->in_user_direction->setText("Please input some text");
+        QMessageBox::information(this, tr("Direction Generator"), tr("I would like to know your name"));
         return;
     }
 
+    if(directions.empty() || directions == "Please input some text")
+    {
+        QMessageBox::information(this, tr("Direction Generator"), tr("No User Directions Given! Please provide some"));
+        return;
+    }
+
+    if(feedback.empty() || feedback == "Please input some text")
+    {
+        QMessageBox::information(this, tr("Direction Generator"), tr("No Feedback Given! Please provide some."));
+        return;
+    }
     std::string location = QFileDialog::getExistingDirectory(this, "Save user input").toUtf8().constData();
+
+    if(location.empty())
+    {
+        QMessageBox::information(this, tr("Direction Generator"), tr("No save location given!!"));
+        return;
+    }
 
     std::ofstream file;
 
@@ -540,6 +569,9 @@ void MainWindow::on_bu_user_submit_clicked()
 
     if(!QDir().exists(location.c_str()))
         QDir().mkdir(location.c_str());
+
+    std::string untainted_location = "Data has been saved to: \n";
+    untainted_location.append(location);
 
     location.append("/");
     location.append(name);
@@ -572,14 +604,49 @@ void MainWindow::on_bu_user_submit_clicked()
 
     file << directions;
 
+    file << std::endl << std::endl << std::endl;
+
+
+    file << "USER FEEDBACK STARTS HERE --------------" << std::endl;
+
+    file << feedback;
+
+
     file.close();
-
-
 
 
     file.open(direction_list);
 
     file << _direction_list;
     file.close();
+
+    QMessageBox::information(this, tr("Direction Generator"), tr(untainted_location.c_str()));
+
+}
+
+void MainWindow::on_slide_shifter_sliderMoved(int position)
+{
+//    ui->out_MAIN_error->setText(std::to_string(position).c_str());
+
+    double percentage = ((double)position)/100.0;
+    bool x_checked = ui->ch_shift_end_X->isChecked();
+    bool y_checked = ui->ch_shift_end_y->isChecked();
+
+
+    if(x_checked)
+    {
+        int value = path_img.cols * percentage;
+
+        ui->in_end_x->setText(std::to_string(value).c_str());
+    }
+
+    if(y_checked)
+    {
+        int value = path_img.rows * percentage;
+
+        ui->in_end_y->setText(std::to_string(value).c_str());
+    }
+
+    on__bu_find_path_clicked();
 
 }

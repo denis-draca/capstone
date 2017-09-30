@@ -18,6 +18,7 @@
 #include "std_msgs/String.h"
 #include "std_msgs/Bool.h"
 #include <fstream>
+#include <QMessageBox>
 
 namespace Ui {
 class MainWindow;
@@ -80,6 +81,8 @@ private slots:
 
     void on_bu_user_submit_clicked();
 
+    void on_slide_shifter_sliderMoved(int position);
+
 private: // members
     Ui::MainWindow *ui;
 
@@ -118,6 +121,8 @@ private: // members
     QString _astar_screenshot_dir;
     QString _directions_screenshot_dir;
     QString _landmarks_screenshot_dir;
+
+    QMessageBox _error_box;
 
     bool _error_show;
 

@@ -241,39 +241,33 @@ cv::Point2f main_path::landmark_position(std::string &landmark_name)
 
 bool main_path::check_intersection(cv::Point2f &pt1, cv::Point2f &pt2)
 {
+    cv::namedWindow("test", CV_WINDOW_NORMAL);
     cv::Mat img = _map.clone();
-
-    cv::cvtColor(img,img, CV_GRAY2BGR);
-
-    cv::Vec3b colour;
-
-    colour[0] = 0;
-    colour[1] = 0;
-    colour[2] = 255;
-
-//    cv::namedWindow("raycast", CV_WINDOW_NORMAL);
-
     double gradient = (pt1.y - pt2.y)/(pt2.x - pt2.x);
 
     for(int y = min(pt1.y,pt2.y); y <= max(pt1.y,pt2.y); y++)
     {
         for(int x = min(pt1.x, pt2.x); x <= max(pt1.x, pt2.x); x++)
         {
-            double check = gradient*(x * pt1.x) + pt1.y;
+            double check = gradient*(x - pt1.x) + pt1.y;
+
             if(y <= check + 1 || y >= check + 1)
             {
-//                img.at<cv::Vec3b>(y,x) = colour;
-
+                if(pt1.x == 5 && pt1.y == 5 && pt2.x == 35 && pt2.y == 5)
+                {
+                    img.at<uchar>(y,x) = 127;
+                    cv::imshow("test",img);
+                    cv::waitKey(3);
+                }
                 if(_map.at<uchar>(y,x) < 250)
                 {
                     return true;
                 }
             }
+
+
         }
     }
-
-//    cv::imshow("raycast", img);
-//    cv::waitKey(3);
 
     return false;
 }
