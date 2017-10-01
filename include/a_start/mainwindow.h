@@ -19,6 +19,8 @@
 #include "std_msgs/Bool.h"
 #include <fstream>
 #include <QMessageBox>
+#include <QCursor>
+#include <QPoint>
 
 namespace Ui {
 class MainWindow;
@@ -49,6 +51,9 @@ private: //methods
     void directions_callback(const std_msgs::String &msg);
     void direction_pts_callback(const geometry_msgs::PoseArrayConstPtr &msg);
 
+    void general_display(int x, int y, bool draw);
+
+
 public:
     explicit MainWindow(ros::NodeHandle &n, QWidget *parent = 0);
     ~MainWindow();
@@ -56,18 +61,17 @@ public:
 
 private slots:
     void on__bu_find_path_clicked();
-
-    void on_horizontalScrollBar_sliderMoved(int position);
+    void on_checkBox_clicked(bool checked);
 
     void on_in_start_x_editingFinished();
 
     void check_callbacks();
-
+    void check_mouse_pos();
+    void mouseReleaseEvent(QMouseEvent * event);
 
     void on_bu_clear_clicked();
 
 private slots:
-    void on_checkBox_clicked(bool checked);
     void on_ch_disp_error_clicked(bool checked);
 
     void on_bu_shutdown_clicked();
@@ -91,6 +95,8 @@ private slots:
 
     void on_slide_start_y_sliderMoved(int position);
 
+    void on_bu_clear_uinputs_clicked();
+
 private: // members
     Ui::MainWindow *ui;
 
@@ -100,6 +106,7 @@ private: // members
     cv::Mat _resized_a_star;
     cv::Mat _landmark_map;
     cv::Mat _directions_map;
+    cv::Mat _input_map;
 
     int multiplier;
 
@@ -107,8 +114,10 @@ private: // members
     int _start_y;
     int _end_x;
     int _end_y;
+    int _button_flag;
 
     QTimer *_timer;
+    QTimer *_timer_2;
 
     ros::Subscriber _path_sub;
     ros::Subscriber _error_a_start_sub;
@@ -121,6 +130,7 @@ private: // members
     ros::Publisher _shutdown_pub;
 
     std::vector<std::pair<int,int>> _landmarks;
+    std::vector<cv::Point2f> _user_selections;
 
     std::string _a_start_error;
     std::string _main_path_error;
@@ -135,6 +145,8 @@ private: // members
     bool _error_show;
     bool _display_err;
     bool _set_slider;
+    bool _landmark_update_done;
+    bool _mouse_pressed;
 
 };
 

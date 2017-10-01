@@ -7,14 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>1208</width>
-    <height>707</height>
+    <height>830</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QTabWidget" name="Directions">
+   <widget class="QTabWidget" name="directions">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -23,8 +23,11 @@
       <height>601</height>
      </rect>
     </property>
+    <property name="focusPolicy">
+     <enum>Qt::TabFocus</enum>
+    </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>5</number>
     </property>
     <widget class="QWidget" name="RobotPath">
      <attribute name="title">
@@ -334,16 +337,6 @@
        <item row="1" column="1">
         <widget class="QTextEdit" name="in_user_direction"/>
        </item>
-       <item row="3" column="1">
-        <widget class="QPushButton" name="bu_user_submit">
-         <property name="text">
-          <string>Submit</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QTextEdit" name="in_user_direction_feedback"/>
-       </item>
        <item row="2" column="0">
         <widget class="QLabel" name="label_11">
          <property name="text">
@@ -351,7 +344,48 @@
          </property>
         </widget>
        </item>
+       <item row="2" column="1">
+        <widget class="QTextEdit" name="in_user_direction_feedback"/>
+       </item>
+       <item row="3" column="1">
+        <widget class="QPushButton" name="bu_user_submit">
+         <property name="text">
+          <string>Submit</string>
+         </property>
+        </widget>
+       </item>
       </layout>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="Userinput_img">
+     <attribute name="title">
+      <string>User Input Locations</string>
+     </attribute>
+     <widget class="QLabel" name="img_uInput">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>801</width>
+        <height>401</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="bu_clear_uinputs">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>420</y>
+        <width>191</width>
+        <height>141</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Clear Inputs</string>
+      </property>
      </widget>
     </widget>
    </widget>

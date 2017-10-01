@@ -48,19 +48,19 @@ int path::find_path()
     }
     std_msgs::String error_str;
 
-    ROS_INFO("Resetting nodes");
+//    ROS_INFO("Resetting nodes");
     reset_nodes();
 
     cv::Point2f pt_s;
     cv::Point2f pt_e;
 
 
-    ROS_INFO("UPRATE POINTS");
+//    ROS_INFO("UPRATE POINTS");
     update_current_point(_given_start_point);
     update_end_point(_given_end_point);
 
 
-    ROS_INFO("UPRATE POINTS DONE");
+//    ROS_INFO("UPRATE POINTS DONE");
 
 
     if(_given_start_point.x == _given_end_point.x && _given_start_point.y == _given_end_point.y)
@@ -85,7 +85,7 @@ int path::find_path()
 
     _node_list.at(_start_pos).open = true;
 
-    ROS_INFO("STARTING SEARCH");
+//    ROS_INFO("STARTING SEARCH");
 
     while(!open_list.empty())
     {
@@ -100,7 +100,7 @@ int path::find_path()
         {
             //donet
             closed_list.push_back(current);
-            std::cout << "FOUND" << std::endl;
+//            std::cout << "FOUND" << std::endl;
             break;
         }
 
@@ -313,12 +313,8 @@ bool path::sort_list_biggest(std::vector<path::node> &list)
 int path::update_current_point(geometry_msgs::Point start_point)
 {
     _start_point = start_point;
-    std::cout << "START X: " << _start_point.x << " START Y: " << _start_point.y << std::endl;
-
     _start_id = find_closest_node(_start_point);
-    std::cout << "START ID " << _start_id << std::endl;
     _start_pos = find_pos(_start_id);
-    std::cout << "START POS " << _start_pos << std::endl;
 
     return _start_id;
 
@@ -327,12 +323,8 @@ int path::update_current_point(geometry_msgs::Point start_point)
 int path::update_end_point(geometry_msgs::Point end_point)
 {
     _end_point = end_point;
-
-    std::cout << "END X: " << _end_point.x << " END Y: " << _end_point.y << std::endl;
     _end_id = find_closest_node(_end_point);
-    std::cout << "END ID" << _end_id << std::endl;
     _end_pos = find_pos(_end_id);
-    std::cout << "END pos" << _end_pos << std::endl;
 
     return _end_id;
 }
@@ -479,7 +471,7 @@ void path::publish_path(std::vector<path::node> &list)
         }
     }
 
-    ROS_INFO("PUBLISHED");
+//    ROS_INFO("PUBLISHED");
     path = reverse_path(path);
     _path_pub.publish(path);
 }

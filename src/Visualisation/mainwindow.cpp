@@ -70,13 +70,27 @@ MainWindow::MainWindow(ros::NodeHandle &n, QWidget *parent) :
      connect(_timer, SIGNAL(timeout()), this, SLOT(check_callbacks()));
     _timer->start(100);
 
+    _timer_2 = new QTimer(this);
+     connect(_timer_2, SIGNAL(timeout()), this, SLOT(check_mouse_pos()));
+    _timer_2->start(17);
+
     _error_show = true;
     _set_slider = true;
+    _landmark_update_done = false;
 
     //Directory member setup
     _astar_screenshot_dir = "/home/denis/catkin_ws/src/a_start/for Report";
     _directions_screenshot_dir = "/home/denis/catkin_ws/src/a_start/for Report";
     _landmarks_screenshot_dir = "/home/denis/catkin_ws/src/a_start/for Report";
+
+    int x = ui->img_uInput->pos().x();
+    int y = ui->img_uInput->pos().y();
+
+    ui->img_uInput->setGeometry(x, y, 800, 400);
+    setMouseTracking(true);
+
+
+    _button_flag = -1;
 
 }
 
@@ -338,6 +352,87 @@ void MainWindow::direction_pts_callback(const geometry_msgs::PoseArrayConstPtr &
 
 }
 
+void MainWindow::general_display(int x, int y, bool draw)
+{
+    cv::Mat landmark_disp = path_img.clone();
+
+    if(!_landmark_update_done)
+    {
+        for(int i = 0; i < _landmarks.size(); i++)
+        {
+            std::pair<int,int> temp = _landmarks.at(i);
+
+            cv::Point2f pt;
+
+            pt.x = temp.first;
+            pt.y = temp.second;
+
+            cv::circle(landmark_disp, pt, 1, cv::Scalar(50, 100, 200));
+        }
+
+//        _landmark_update_done = true;
+    }
+
+    geometry_msgs::Point start_pt;
+    geometry_msgs::Point end_pt;
+
+    bool unset = false;
+    if(_start_x == -1)
+        unset = true;
+    else
+        start_pt.x = _start_x;
+
+    if(_start_y == -1)
+        unset = true;
+    else
+        start_pt.y = _start_y;
+
+    if(_end_x == -1)
+        unset = true;
+    else
+       end_pt.x = _end_x;
+
+    if(_end_y == -1)
+        unset = true;
+    else
+        end_pt.y = _end_y;
+
+    if(!unset)
+    {
+        cv::Point2f pt1;
+        cv::Point2f pt2;
+
+        pt1.x = _start_x;
+        pt1.y = _start_y;
+
+        pt2.x = _end_x;
+        pt2.y = _end_y;
+
+        cv::circle(landmark_disp, pt1, 1, cv::Scalar(0,255,0));
+        cv::circle(landmark_disp, pt2, 1, cv::Scalar(0,0,255));
+    }
+
+    if(draw)
+    {
+        cv::Point2f pt_draw;
+        pt_draw.x = x;
+        pt_draw.y = y;
+
+        cv::circle(landmark_disp, pt_draw, 1, cv::Scalar(255,0,0));
+    }
+
+
+
+    for(int i = 0; i < _user_selections.size(); i++)
+    {
+        cv::circle(landmark_disp,_user_selections.at(i),1, cv::Scalar(255,0,0));
+    }
+
+    _input_map = resize_to_multipler(landmark_disp);
+    ui->img_uInput->setPixmap(QPixmap::fromImage(Mat2QImage(_input_map)));
+
+}
+
 MainWindow::~MainWindow()
 {
     delete ui;
@@ -428,11 +523,6 @@ void MainWindow::on__bu_find_path_clicked()
 
 }
 
-void MainWindow::on_horizontalScrollBar_sliderMoved(int position)
-{
-//    std::cout << position << std::endl;
-}
-
 
 void MainWindow::on_in_start_x_editingFinished()
 {
@@ -472,6 +562,46 @@ void MainWindow::check_callbacks()
     ros::spinOnce();
 }
 
+void MainWindow::check_mouse_pos()
+{
+    if(ui->directions->currentIndex() == 5)
+    {
+        bool status = false;
+
+        QPoint mouse_point = QCursor::pos();
+
+        mouse_point = mapFromGlobal(mouse_point);
+
+        QPoint widget_point = ui->img_uInput->pos();
+
+
+        int offset_x = widget_point.x() + 13;
+        int offset_y = widget_point.y() + 42;
+
+        int size_x = offset_x + ui->img_uInput->width();
+        int size_y = offset_y + ui->img_uInput->height();
+
+
+        if(mouse_point.x() > offset_x && mouse_point.y() > offset_y && mouse_point.x() < size_x && mouse_point.y() < size_y)
+            status = true;
+
+
+        if(_button_flag == 1 && status)
+        {
+            cv::Point2f pt;
+
+            pt.x = (mouse_point.x() - offset_x)/multiplier;
+            pt.y = (mouse_point.y() - offset_y)/multiplier;
+
+            _user_selections.push_back(pt);
+            _button_flag = -1;
+        }
+
+        general_display((mouse_point.x() - offset_x)/multiplier, (mouse_point.y() - offset_y)/multiplier, status);
+
+    }
+}
+
 void MainWindow::on_bu_clear_clicked()
 {
     ui->out_ASTART_error->setText(" ");
@@ -509,7 +639,6 @@ void MainWindow::on_bu_shutdown_clicked()
 
     MainWindow::close();
 }
-
 
 void MainWindow::on_bu_set_dir_clicked()
 {
@@ -722,4 +851,14 @@ void MainWindow::on_slide_start_y_sliderMoved(int position)
     _set_slider = false;
     on__bu_find_path_clicked();
     _set_slider = true;
+}
+
+void MainWindow::mouseReleaseEvent ( QMouseEvent * event )
+{
+    _button_flag = event->button();
+}
+
+void MainWindow::on_bu_clear_uinputs_clicked()
+{
+    _user_selections.clear();
 }
