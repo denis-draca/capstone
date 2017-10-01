@@ -133,6 +133,7 @@ private: // members
 
     std::vector<std::pair<int,int>> _landmarks;
     std::vector<cv::Point2f> _user_selections;
+    std::vector<cv::Point2f> _point_generator_selections;
 
     std::string _a_start_error;
     std::string _main_path_error;

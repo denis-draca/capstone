@@ -71,6 +71,38 @@ int path::find_path()
         return -1;
     }
 
+    if(_given_start_point.x < 0 || _given_start_point.x >= img_for_path.cols ||  _given_start_point.y < 0 || _given_start_point.y >= img_for_path.rows)
+    {
+        ROS_ERROR("GIVEN START POINT IS OUT OF RANGE");
+        error_str.data = "GIVEN START POINT IS OUT OF RANGE";
+        _error_pub.publish(error_str);
+        return -1;
+    }
+
+    if(_given_end_point.x < 0 || _given_end_point.x >= img_for_path.cols ||  _given_end_point.y < 0 || _given_end_point.y >= img_for_path.rows)
+    {
+        ROS_ERROR("GIVEN END POINT IS OUT OF RANGE");
+        error_str.data = "GIVEN END POINT IS OUT OF RANGE";
+        _error_pub.publish(error_str);
+        return -1;
+    }
+
+    if(img_for_path.at<uchar>(_given_start_point.y,_given_start_point.x) < 250)
+    {
+        ROS_ERROR("START POINT is in a wall");
+        error_str.data = "START POINT is in a wall";
+        _error_pub.publish(error_str);
+        return -1;
+    }
+
+    if(img_for_path.at<uchar>(_given_end_point.y,_given_end_point.x) < 250)
+    {
+        ROS_ERROR("END POINT is in a wall");
+        error_str.data = "END POINT is in a wall";
+        _error_pub.publish(error_str);
+        return -1;
+    }
+
 
     std::vector<node> open_list;
     std::vector<node> closed_list;
