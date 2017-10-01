@@ -234,16 +234,56 @@ cv::Point2f main_path::landmark_position(std::string &landmark_name)
 
     std_msgs::String str_err;
 
-    str_err.data = "The landmark was not found within the list of landmarks. Chosen landmark must be wrong";
+    str_err.data = "The landmark was not found within the list of landmarks. Chosen landmark must be wrong (Landmark Position) Name:";
+    str_err.data.append(landmark_name);
 
     _error_pub.publish(str_err);
 }
 
+main_path::landmark main_path::return_landmark(std::string &land)
+{
+    for(int i = 0; i < _landmark_list.size(); i++)
+    {
+        if(!land.compare(_landmark_list.at(i).name))
+            return _landmark_list.at(i);
+    }
+
+    std_msgs::String str_err;
+
+    str_err.data = "The landmark was not found within the list of landmarks. Chosen landmark must be wrong (return landmark) Name:";
+    str_err.data.append(land);
+
+    _error_pub.publish(str_err);
+}
+
+std::string main_path::landmark_can_see_both()
+{
+    for(int i = 0; i < _landmark_list.size(); i++)
+    {
+        if(_landmark_list.at(i).goal_line_of_sight && _landmark_list.at(i).start_line_of_sight)
+            return _landmark_list.at(i).name;
+    }
+
+    std::string empty;
+
+    return empty;
+}
+
 bool main_path::check_intersection(cv::Point2f &pt1, cv::Point2f &pt2)
 {
-    cv::namedWindow("test", CV_WINDOW_NORMAL);
-    cv::Mat img = _map.clone();
-    double gradient = (pt1.y - pt2.y)/(pt2.x - pt2.x);
+    if(pt1.x - pt2.x < safeRange && pt1.x - pt2.x > -safeRange)
+    {
+        for(int i = min(pt1.x, pt2.x); i < max(pt1.x, pt2.x); i++)
+        {
+            if(_map.at<uchar>(pt1.y,i) < 250)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    double gradient = (pt1.y - pt2.y)/(pt1.x - pt2.x);
 
     for(int y = min(pt1.y,pt2.y); y <= max(pt1.y,pt2.y); y++)
     {
@@ -253,12 +293,6 @@ bool main_path::check_intersection(cv::Point2f &pt1, cv::Point2f &pt2)
 
             if(y <= check + 1 || y >= check + 1)
             {
-                if(pt1.x == 5 && pt1.y == 5 && pt2.x == 35 && pt2.y == 5)
-                {
-                    img.at<uchar>(y,x) = 127;
-                    cv::imshow("test",img);
-                    cv::waitKey(3);
-                }
                 if(_map.at<uchar>(y,x) < 250)
                 {
                     return true;
@@ -321,7 +355,8 @@ bool main_path::landmark_can_see_goal(std::string &landmark_name)
 
     std_msgs::String str_err;
 
-    str_err.data = "The landmark was not found within the list of landmarks. Chosen landmark must be wrong";
+    str_err.data = "The landmark was not found within the list of landmarks. Chosen landmark must be wrong (landmark_can_see_goal) Name:";
+    str_err.data.append(landmark_name);
 
     _error_pub.publish(str_err);
 }
@@ -340,7 +375,8 @@ bool main_path::landmark_can_see_start(std::string &landmark_name)
 
     std_msgs::String str_err;
 
-    str_err.data = "The landmark was not found within the list of landmarks. Chosen landmark must be wrong";
+    str_err.data = "The landmark was not found within the list of landmarks. Chosen landmark must be wrong(landmark_can_see_start) Name:";
+    str_err.data.append(landmark_name);
 
     _error_pub.publish(str_err);
 }
@@ -356,13 +392,15 @@ bool main_path::closest_to_goal(std::string &closest_name)
     {
         landmark temp = _landmark_list.at(i);
 
-        if(temp.dist_to_goal < smallest && temp.goal_line_of_sight)
+        if(!temp.goal_line_of_sight)
+            continue;
+
+        if(temp.dist_to_goal < smallest)
         {
             smallest = temp.dist_to_goal;
             name = temp.name;
             closest_can_see_goal = temp.goal_line_of_sight;
         }
-
     }
 
     closest_name = name;
@@ -370,78 +408,57 @@ bool main_path::closest_to_goal(std::string &closest_name)
     return closest_can_see_goal;
 }
 
-bool main_path::check_linked_landmarks(std::vector<std::string> &linked_list, std::string &closest_landmark)
+bool main_path::closest_to_start(std::string &closest_name)
 {
-    landmark last_one;
+    double smallest = _landmark_list.front().dist_to_start;
+    std::string name = _landmark_list.front().name;
+
+    bool closest_can_see_start = _landmark_list.front().start_line_of_sight;
+
+    for(int i = 1; i < _landmark_list.size(); i++)
+    {
+        landmark temp = _landmark_list.at(i);
+
+        if(!temp.start_line_of_sight)
+            continue;
+
+        if(temp.dist_to_start < smallest)
+        {
+            smallest = temp.dist_to_start;
+            name = temp.name;
+            closest_can_see_start = temp.start_line_of_sight;
+        }
+    }
+
+    closest_name = name;
+
+    return closest_can_see_start;
+}
+
+bool main_path::check_linked_landmarks(std::vector<std::string> &linked_list)
+{
     bool linked = false;
 
-    for(int i = 0; i < _landmark_list.size(); i++)
+    std::string before_goal;
+    std::string before_start;
+
+    bool can_see_goal = closest_to_goal(before_goal);
+    bool can_see_start = closest_to_start(before_start);
+
+    if(can_see_goal && can_see_start)
     {
-        if(_landmark_list.at(i).name.compare(closest_landmark))
+        landmark land1 = return_landmark(before_goal);
+        landmark land2 = return_landmark(before_start);
+
+        bool landmarks_see_each_other = line_of_sight(land1,land2);
+
+        if(landmarks_see_each_other)
         {
-            last_one = _landmark_list.at(i);
+            linked_list.push_back(before_start);
+            linked_list.push_back(before_goal);
+            return true;
         }
     }
-
-
-    std::vector<landmark> closed_list;
-    std::vector<landmark> open_list;
-
-    open_list.push_back(last_one);
-
-    while(!open_list.empty())
-    {
-        sort(open_list);
-        closed_list.push_back(open_list.back());
-        open_list.pop_back();
-
-        landmark current = closed_list.back();
-        set_closed(current);
-
-        if(current.start_line_of_sight)
-        {
-            linked = true;
-            break;
-        }
-
-        for(int i = 0; i < _landmark_list.size(); i++)
-        {
-            if(_landmark_list.at(i).closed)
-                continue;
-
-            if(line_of_sight(current, _landmark_list.at(i)) && !_landmark_list.at(i).open)
-            {
-                _landmark_list.at(i).cost = distance_between_two_landmarks(current, _landmark_list.at(i));
-                _landmark_list.at(i).open = true;
-                open_list.push_back(_landmark_list.at(i));
-            }
-        }
-    }
-
-    if(linked)
-    {
-        while(!closed_list.empty())
-        {
-            std::string str;
-
-            landmark temp = closed_list.back();
-            closed_list.pop_back();
-
-            str = temp.name;
-
-            if(temp.goal_line_of_sight)
-            {
-                linked_list.push_back(str);
-                break;
-            }
-
-            linked_list.push_back(str);
-        }
-
-    }
-
-
-
 
     return linked;
 }
@@ -518,6 +535,8 @@ void main_path::find_steps()
 
     point_list.push_back(_path_pts.front());
 
+    std::string landmark_sees_both = landmark_can_see_both();
+
 
     //----------------------------------------------------------------------------
     //                              New Path Here
@@ -533,58 +552,124 @@ void main_path::find_steps()
     {
         directions.append("\nYou can see the goal from here");
         goal_found = true;
+        directions.append("\nUsing rule1");
     }
-    else if(landmark_can_see)
+    else if(!landmark_sees_both.empty())
     {
-        if(landmark_can_see_start(closest_landmark))
+        directions.append("\nGo past ");
+        directions.append(landmark_sees_both);
+        directions.append(" You can see the goal from there");
+
+        point_list.push_back(landmark_position(landmark_sees_both));
+        goal_found = true;
+        directions.append("\nUsing rule2");
+
+    }
+    else if(check_linked_landmarks(list))
+    {
+        for(int i = 0; i < list.size(); i++)
         {
             directions.append("\nGo past ");
-            directions.append(closest_landmark);
-            directions.append(" You can see the goal from there");
+            directions.append(list.at(i));
 
-            point_list.push_back(landmark_position(closest_landmark));
-            goal_found = true;
+            point_list.push_back(landmark_position(list.at(i)));
         }
-        else if(check_linked_landmarks(list, closest_landmark))
-        {
-            for(int i = 0; i < list.size(); i++)
-            {
-                directions.append("\nGo past ");
-                directions.append(list.at(i));
 
-                point_list.push_back(landmark_position(list.at(i)));
-            }
-
-            directions.append(" You can see the goal from there");
-            goal_found = true;
-        }
+        directions.append(" You can see the goal from there");
+        goal_found = true;
+        directions.append("\nUsing rule3");
     }
 
     if(!goal_found)
     {
-        for(int upto = 0; upto < _path_pts.size(); upto++)
+        std::vector<std::string> landmarks_used;
+        std::string before_goal;
+        bool can_see_goal = closest_to_goal(before_goal);
+
+        for(int i = 0; i < _path_pts.size(); i++)
         {
-            if(can_i_see_a_landmark(_path_pts.at(upto), closest_landmark))
+            if(!check_intersection(_path_pts.at(i), _path_pts.back()))
             {
-                point_list.push_back(_path_pts.at(upto));
-                point_list.push_back(landmark_position(closest_landmark));
+                directions.append("\nYou can see the goal from this point");
+                point_list.push_back(_path_pts.at(i));
+                directions.append("\nUsing rule 4.1");
 
-                directions.append("\n");
-                directions.append("Go in this directions (**point to direction**), you should be able to see ");
-                directions.append(closest_landmark.c_str());
-                directions.append(" from there");
+                break;
+            }
 
-                directions.append(" go past ");
-                directions.append(closest_landmark.c_str());
+            if(can_see_goal)
+            {
+                cv::Point2f pt = landmark_position(before_goal);
 
-                if(landmark_can_see_goal(closest_landmark))
+                if(!check_intersection(_path_pts.at(i), pt))
                 {
-                    directions.append("\n");
+                    directions.append("\nYou can see landmark ");
+                    directions.append(before_goal);
+                    directions.append(" from this point.");
 
-                    directions.append("goal can be seen from ");
-                    directions.append(closest_landmark.c_str());
+                    directions.append("Go past ");
+                    directions.append(before_goal);
+                    directions.append(" you will be able to see the goal from there");
+                    point_list.push_back(_path_pts.at(i));
+                    point_list.push_back(pt);
+
+                    directions.append("\nUsing rule 4.2");
+
                     break;
                 }
+            }
+            std::string visible_landmark;
+            bool done = false;
+            while(can_i_see_a_landmark(_path_pts.at(i), visible_landmark) && !done)
+            {
+                if(landmarks_used.empty())
+                {
+                    landmarks_used.push_back(visible_landmark);
+
+                    directions.append("\nGo past this point (point to direction), you can see");
+                    directions.append(visible_landmark);
+                    directions.append(" from there");
+
+                    point_list.push_back(_path_pts.at(i));
+                    directions.append("Go past ");
+                    directions.append(visible_landmark);
+
+                    point_list.push_back(landmark_position(visible_landmark));
+
+                    done = true;
+                }
+
+                if(done)
+                    continue;
+
+
+                bool toContinue = false;
+
+
+                for(int x = 0; x < landmarks_used.size(); x++)
+                {
+                    cv::Point2f current_landmark = landmark_position(visible_landmark);
+                    cv::Point2f already_used = landmark_position(landmarks_used.at(x));
+                    if(distance_between_two_points(_path_pts.back(), current_landmark) > distance_between_two_points(_path_pts.back(),already_used))
+                        toContinue = true;
+
+                }
+
+                if(toContinue)
+                    continue;
+
+                landmarks_used.push_back(visible_landmark);
+
+                directions.append("\nGo past this point (point to direction), you can see");
+                directions.append(visible_landmark);
+                directions.append(" from there");
+
+                point_list.push_back(_path_pts.at(i));
+
+                directions.append("Go past ");
+                directions.append(visible_landmark);
+
+                point_list.push_back(landmark_position(visible_landmark));
             }
         }
     }
@@ -607,3 +692,29 @@ void main_path::find_steps()
     publish_pts(point_list);
 
 }
+
+
+
+//if(can_i_see_a_landmark(_path_pts.at(upto), closest_landmark))
+//{
+//    point_list.push_back(_path_pts.at(upto));
+//    point_list.push_back(landmark_position(closest_landmark));
+
+//    directions.append("\n");
+//    directions.append("Go in this directions (**point to direction**), you should be able to see ");
+//    directions.append(closest_landmark.c_str());
+//    directions.append(" from there");
+
+//    directions.append(" go past ");
+//    directions.append(closest_landmark.c_str());
+
+//    if(landmark_can_see_goal(closest_landmark))
+//    {
+//        directions.append("\n");
+
+//        directions.append("goal can be seen from ");
+//        directions.append(closest_landmark.c_str());
+//        directions.append("\nUsing rule4");
+//        break;
+//    }
+//}

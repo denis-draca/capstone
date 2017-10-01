@@ -10,6 +10,8 @@
 #include "geometry_msgs/Point.h"
 #include "opencv2/opencv.hpp"
 
+#define safeRange 0.01
+
 class main_path
 {
 
@@ -53,8 +55,10 @@ private://methods
     bool landmark_can_see_goal(std::string &landmark_name);
     bool landmark_can_see_start(std::string &landmark_name);
     bool closest_to_goal(std::string &closest_name);
-    bool check_linked_landmarks(std::vector<std::string> &linked_list, std::string &closest_landmark);
-    bool line_of_sight(landmark &land1, landmark &land2);
+    bool closest_to_start(std::string &closest_name);
+    bool check_linked_landmarks(std::vector<std::string> &linked_list);
+    bool line_of_sight(main_path::landmark &land1, main_path::landmark &land2);
+
 
     //Returns Double
     double max(double x, double y);
@@ -66,6 +70,10 @@ private://methods
     //pt returns
 
     cv::Point2f landmark_position(std::string &landmark_name);
+
+    landmark return_landmark(std::string &land);
+
+    std::string landmark_can_see_both();
 
 
 private://members

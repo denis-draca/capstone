@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="RobotPath">
      <attribute name="title">
@@ -212,6 +212,19 @@
         </widget>
        </item>
       </layout>
+     </widget>
+     <widget class="QCheckBox" name="ch_directions">
+      <property name="geometry">
+       <rect>
+        <x>810</x>
+        <y>410</y>
+        <width>131</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>show Output</string>
+      </property>
      </widget>
     </widget>
     <widget class="QWidget" name="Landmarks">

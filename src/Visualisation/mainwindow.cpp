@@ -245,7 +245,30 @@ void MainWindow::display_landmarks()
         pt.y = temp.second;
 
         cv::circle(landmark_disp, pt, 1, cv::Scalar(50, 100, 200));
+
+        if(i != _landmarks.size() - 1)
+        {
+            cv::Point2f pt2;
+
+            pt2.x = _landmarks.at(i + 1).first;
+            pt2.y = _landmarks.at(i + 1).second;
+
+            cv::line(landmark_disp, pt, pt2, cv::Scalar(20,255,255));
+        }
     }
+
+    cv::Point2f pt1;
+
+    pt1.x = _landmarks.front().first;
+    pt1.y = _landmarks.front().second;
+
+    cv::Point2f pt2;
+
+    pt2.x = _landmarks.back().first;
+    pt2.y = _landmarks.back().second;
+
+    cv::line(landmark_disp, pt1, pt2, cv::Scalar(20,255,255));
+
 
     _landmark_map = resize_to_multipler(landmark_disp);
 
@@ -274,7 +297,8 @@ void MainWindow::main_path_error_callback(const std_msgs::String &msg)
 void MainWindow::directions_callback(const std_msgs::String &msg)
 {
     _direction_list = msg.data;
-    ui->out_directions->setText(_direction_list.c_str());
+    if(ui->ch_directions->isChecked())
+        ui->out_directions->setText(_direction_list.c_str());
 }
 
 void MainWindow::direction_pts_callback(const geometry_msgs::PoseArrayConstPtr &msg)
