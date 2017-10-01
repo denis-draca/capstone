@@ -97,6 +97,8 @@ private slots:
 
     void on_bu_clear_uinputs_clicked();
 
+    void on_bu_undo_uinput_clicked();
+
 private: // members
     Ui::MainWindow *ui;
 

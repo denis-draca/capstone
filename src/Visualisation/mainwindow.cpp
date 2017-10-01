@@ -862,3 +862,14 @@ void MainWindow::on_bu_clear_uinputs_clicked()
 {
     _user_selections.clear();
 }
+
+void MainWindow::on_bu_undo_uinput_clicked()
+{
+    if(_user_selections.empty())
+    {
+        QMessageBox::information(this,tr("User Input"),tr("Nothing to undo"));
+        return;
+    }
+
+    _user_selections.pop_back();
+}
