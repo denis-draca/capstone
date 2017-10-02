@@ -586,9 +586,9 @@ void main_path::find_steps()
         std::string before_goal;
         bool can_see_goal = closest_to_goal(before_goal);
 
-        for(int i = 0; i < _path_pts.size(); i++)
+        for(int i = 0; i < _path_pts.size() - 1; i++)
         {
-            if(!check_intersection(_path_pts.at(i), _path_pts.back()))
+            if(!check_intersection(_path_pts.at(i), _path_pts.back()) || !check_intersection(_path_pts.at(i + 1), _path_pts.back()))
             {
                 directions.append("\nYou can see the goal from this point");
                 point_list.push_back(_path_pts.at(i));
