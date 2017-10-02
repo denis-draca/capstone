@@ -417,11 +417,35 @@ void MainWindow::general_display(int x, int y, bool draw)
 
     if(draw)
     {
-        cv::Point2f pt_draw;
-        pt_draw.x = x;
-        pt_draw.y = y;
+        if(ui->rb_circle->isChecked())
+        {
+            cv::Point2f pt_draw;
+            pt_draw.x = x;
+            pt_draw.y = y;
 
-        cv::circle(landmark_disp, pt_draw, 1, cv::Scalar(255,0,0));
+            cv::circle(landmark_disp, pt_draw, 1, cv::Scalar(255,0,0));
+        }
+        else if(ui->rb_crosshair->isChecked())
+        {
+            cv::Point2f pt_top;
+            cv::Point2f pt_bottom;
+            cv::Point2f pt_left;
+            cv::Point2f pt_right;
+
+            pt_top.x = x;
+            pt_top.y = 0;
+            pt_bottom.x = x;
+            pt_bottom.y = landmark_disp.rows;
+
+            pt_left.x = 0;
+            pt_left.y = y;
+            pt_right.x = landmark_disp.cols;
+            pt_right.y = y;
+
+            cv::line(landmark_disp, pt_top, pt_bottom,cv::Scalar(255,0,0));
+            cv::line(landmark_disp, pt_left, pt_right,cv::Scalar(255,0,0));
+
+        }
     }
 
 
@@ -613,6 +637,12 @@ void MainWindow::check_mouse_pos()
             ui->label_cursor->setText(cursor_display.c_str());
 
         }
+
+        std::string total_selections;
+
+        total_selections.append(std::to_string(_user_selections.size()));
+
+        ui->label_selections->setText(total_selections.c_str());
 
     }
 }
@@ -903,6 +933,7 @@ void MainWindow::mouseReleaseEvent ( QMouseEvent * event )
 {
     _button_flag = event->button();
 }
+
 
 void MainWindow::on_bu_clear_uinputs_clicked()
 {
