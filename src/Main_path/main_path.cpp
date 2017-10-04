@@ -10,13 +10,15 @@ main_path::main_path(ros::NodeHandle &n):
     std::string path_points;
     std::string map_location;
     std::string shutdown_name;
+    std::string orientation;
 
     _n.getParam("/main_path/errors/main_path", error_name);
     _n.getParam("/main_path/paths/a_star", raw_path);
     _n.getParam("/main_path/paths/main_path", calculated_paths);
     _n.getParam("/main_path/paths/main_path_points", path_points);
     _n.getParam("/main_path/image", map_location);
-    _n.getParam("main_path/shutdown", shutdown_name);
+    _n.getParam("/main_path/shutdown", shutdown_name);
+    _n.getParam("/main_path/paths/orientation", orientation);
 
     _error_pub = _n.advertise<std_msgs::String>(error_name.c_str(), 1);
     _path_pub = _n.advertise<std_msgs::String>(calculated_paths.c_str(), 1);
@@ -24,10 +26,12 @@ main_path::main_path(ros::NodeHandle &n):
 
     _path_sub = _n.subscribe(raw_path.c_str(), 1, &main_path::a_star_path_callback, this);
     _shutdown_sub = _n.subscribe(shutdown_name.c_str(), 1, &main_path::shutdown, this);
+    _orientation_sub = _n.subscribe(orientation.c_str(),1, &main_path::orientation_callback, this);
 
     _map = cv::imread(map_location.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
 
     setup_landmarks();
+    _orientation = 0;
 }
 
 void main_path::a_star_path_callback(const geometry_msgs::PoseArrayConstPtr &msg)
@@ -57,10 +61,12 @@ void main_path::setup_landmarks()
     {
         std::string index = std::to_string(i);
         std::string baseline = "main_path/landmark";
-
         baseline.append(index.c_str());
+        std::string nameGet = baseline;
 
         std::vector<int> xy_coordinates;
+
+        baseline.append("/location");
 
         _n.getParam(baseline, xy_coordinates);
 
@@ -68,8 +74,14 @@ void main_path::setup_landmarks()
         temp.x = xy_coordinates.front();
         temp.y = xy_coordinates.back();
 
-        temp.name = "landmark_";
-        temp.name.append(std::to_string(i));
+        std::string name;
+
+        nameGet.append("/name");
+
+
+        _n.getParam(nameGet.c_str(), name);
+
+        temp.name = name;
 
         _landmark_list.push_back(temp);
 
@@ -190,6 +202,11 @@ void main_path::sort(std::vector<main_path::landmark> &list)
     }
 }
 
+void main_path::orientation_callback(const std_msgs::Float32ConstPtr &msg)
+{
+    _orientation = msg->data;
+}
+
 double main_path::distance_between_two_points(cv::Point2f &pt1, cv::Point2f &pt2)
 {
     double dist;
@@ -267,6 +284,113 @@ std::string main_path::landmark_can_see_both()
     std::string empty;
 
     return empty;
+}
+
+std::string main_path::natural_lang_gen(std::vector<cv::Point2f> &list)
+{
+    double current_orientation = _orientation;
+
+    std::string toSend = "Directions\n";
+
+    for(int i = 0; i < list.size() - 1 ; i++)
+    {
+        cv::Point2f currentPt = list.at(i);
+        cv::Point2f nextPt = list.at(i + 1);
+
+
+        double next_orientation;
+
+        double dx = nextPt.x - currentPt.x;
+        double dy = nextPt.y - currentPt.y;
+
+        bool calculate = true;
+
+        if(dy < 0.1 && dy > -0.1)
+        {
+            calculate = false;
+
+            if(dx > 0)
+                next_orientation = M_PI/2;
+            else
+                next_orientation = -M_PI/2;
+        }
+
+        if(dx < 0.1 && dx > -0.1)
+        {
+            calculate = false;
+
+            if(dy > 0)
+                next_orientation = M_PI;
+            else
+                next_orientation = 0.0;
+        }
+
+        if(calculate)
+        {
+            next_orientation = atan2(dy,dx) + M_PI/2;
+        }
+
+        int distance_to_next_point = round(sqrt(pow(dy,2) + pow(dx,2)));
+
+        if(next_orientation - current_orientation < M_PI && next_orientation - current_orientation > 0)
+        {
+            toSend.append("Turn Right");
+
+        }
+        else if(next_orientation - current_orientation > M_PI || next_orientation - current_orientation < 0)
+        {
+            toSend.append("Turn left");
+        }
+
+        if(i + 1 == list.size() - 1)
+        {
+            toSend.append(" and walk about ");
+            toSend.append(std::to_string(distance_to_next_point));
+            toSend.append(" meters, at this point you will reach your destination");
+            break;
+        }
+
+        std::string possible_name;
+
+        if(is_landmark(nextPt, possible_name))
+        {
+            toSend.append(" and walk about ");
+            toSend.append(std::to_string(distance_to_next_point));
+            toSend.append(" meters until you reach ");
+            toSend.append(possible_name);
+            toSend.append(" ,from there\n");
+        }
+        else if(i + 2 < list.size())
+        {
+            std::string possible_name_2;
+            cv::Point2f aheadpt = list.at(i+2);
+            if(is_landmark(aheadpt, possible_name_2))
+            {
+                toSend.append(" and walk about ");
+                toSend.append(std::to_string(distance_to_next_point));
+                toSend.append(" meters until you can see ");
+                toSend.append(possible_name_2);
+                toSend.append(" ,now you can\n");
+            }
+            else
+            {
+                toSend.append(" and walk about ");
+                toSend.append(std::to_string(distance_to_next_point));
+                toSend.append(" meters and then \n");
+            }
+
+        }
+        else
+        {
+            toSend.append(" and walk about ");
+            toSend.append(std::to_string(distance_to_next_point));
+            toSend.append(" meters and then \n");
+        }
+
+        current_orientation = next_orientation;
+    }
+
+    return toSend;
 }
 
 bool main_path::check_intersection(cv::Point2f &pt1, cv::Point2f &pt2)
@@ -482,6 +606,22 @@ bool main_path::line_of_sight(main_path::landmark &land1, main_path::landmark &l
     return true;
 }
 
+bool main_path::is_landmark(cv::Point2f pt, std::string &name)
+{
+    for(int i = 0; i < _landmark_list.size(); i++)
+    {
+        landmark temp = _landmark_list.at(i);
+
+        if(std::abs(temp.x - pt.x) < 1 && std::abs(temp.y - pt.y) < 1)
+        {
+            name = temp.name;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 double main_path::max(double x, double y)
 {
     if(x > y)
@@ -585,6 +725,7 @@ void main_path::find_steps()
         std::vector<std::string> landmarks_used;
         std::string before_goal;
         bool can_see_goal = closest_to_goal(before_goal);
+        point_list.clear();
 
         for(int i = 0; i < _path_pts.size() - 1; i++)
         {
@@ -674,6 +815,9 @@ void main_path::find_steps()
         }
     }
 
+    point_list.push_back(_path_pts.back());
+
+    directions = natural_lang_gen(point_list);
 
 
     //----------------------------------------------------------------------------
@@ -681,8 +825,6 @@ void main_path::find_steps()
     //----------------------------------------------------------------------------
 
 
-
-    point_list.push_back(_path_pts.back());
     std_msgs::String msg;
 
     msg.data = directions.c_str();
@@ -692,29 +834,3 @@ void main_path::find_steps()
     publish_pts(point_list);
 
 }
-
-
-
-//if(can_i_see_a_landmark(_path_pts.at(upto), closest_landmark))
-//{
-//    point_list.push_back(_path_pts.at(upto));
-//    point_list.push_back(landmark_position(closest_landmark));
-
-//    directions.append("\n");
-//    directions.append("Go in this directions (**point to direction**), you should be able to see ");
-//    directions.append(closest_landmark.c_str());
-//    directions.append(" from there");
-
-//    directions.append(" go past ");
-//    directions.append(closest_landmark.c_str());
-
-//    if(landmark_can_see_goal(closest_landmark))
-//    {
-//        directions.append("\n");
-
-//        directions.append("goal can be seen from ");
-//        directions.append(closest_landmark.c_str());
-//        directions.append("\nUsing rule4");
-//        break;
-//    }
-//}

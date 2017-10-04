@@ -21,6 +21,7 @@
 #include <QMessageBox>
 #include <QCursor>
 #include <QPoint>
+#include "std_msgs/Float32.h"
 
 namespace Ui {
 class MainWindow;
@@ -50,8 +51,10 @@ private: //methods
     void main_path_error_callback(const std_msgs::String &msg);
     void directions_callback(const std_msgs::String &msg);
     void direction_pts_callback(const geometry_msgs::PoseArrayConstPtr &msg);
+    void name_landmarks(cv::Mat &img);
 
     void general_display(int x, int y, bool draw);
+    void arrow(cv::Mat &img, cv::Point2f pt, double orientation, cv::Scalar color, int length = 1, int thickness = 1);
 
 
 public:
@@ -99,6 +102,24 @@ private slots:
 
     void on_bu_undo_uinput_clicked();
 
+    void on_slide_orientation_sliderMoved(int position);
+
+    void on_slide_arrow_length_sliderMoved(int position);
+
+    void on_slide_arrow_thickness_sliderMoved(int position);
+
+    void on_in_orientation_returnPressed();
+
+    void on_buP1_clicked();
+
+    void on_buP2_clicked();
+
+    void on_buP3_clicked();
+
+    void on_buP4_clicked();
+
+    void on_buP5_clicked();
+
 private: // members
     Ui::MainWindow *ui;
 
@@ -117,6 +138,13 @@ private: // members
     int _end_x;
     int _end_y;
     int _button_flag;
+    int _arrow_length;
+    int _thickness;
+    int _preset;
+
+    double _orientation;
+    double _arrow_gain;
+
 
     QTimer *_timer;
     QTimer *_timer_2;
@@ -130,10 +158,12 @@ private: // members
     ros::Publisher _start_point_pub;
     ros::Publisher _end_point_pub;
     ros::Publisher _shutdown_pub;
+    ros::Publisher _orientation_pub;
 
     std::vector<std::pair<int,int>> _landmarks;
     std::vector<cv::Point2f> _user_selections;
     std::vector<cv::Point2f> _point_generator_selections;
+    std::vector<std::string> _landmark_names;
 
     std::string _a_start_error;
     std::string _main_path_error;

@@ -15,6 +15,7 @@ MainWindow::MainWindow(ros::NodeHandle &n, QWidget *parent) :
     std::string directions;
     std::string direction_pts;
     std::string shutdown_name;
+    std::string orientation;
 
     _n.getParam("/visualiser/errors/a_star", error_out_a_star);
     _n.getParam("/visualiser/errors/main_path", error_out_main);
@@ -22,6 +23,7 @@ MainWindow::MainWindow(ros::NodeHandle &n, QWidget *parent) :
     _n.getParam("/visualiser/paths/main_path", directions);
     _n.getParam("/visualiser/paths/main_path_points", direction_pts);
     _n.getParam("/visualiser/shutdown", shutdown_name);
+    _n.getParam("/visualiser/paths/orientation", orientation);
 
     _path_sub = _n.subscribe(raw_path.c_str(), 1, &MainWindow::path_callback,this);
     _error_a_start_sub = _n.subscribe(error_out_a_star.c_str(),1, &MainWindow::a_start_error_callback, this);
@@ -32,6 +34,7 @@ MainWindow::MainWindow(ros::NodeHandle &n, QWidget *parent) :
     _start_point_pub = _n.advertise<geometry_msgs::Point>("/capstone/path/start", 1);
     _end_point_pub = _n.advertise<geometry_msgs::Point>("/capstone/path/end", 1);
     _shutdown_pub = _n.advertise<std_msgs::Bool>(shutdown_name.c_str(), 1);
+    _orientation_pub = _n.advertise<std_msgs::Float32>(orientation.c_str(),1);
 
 
     QString fileName = "/home/denis/catkin_ws/src/a_start/data/map4.png"; /*QFileDialog::getOpenFileName(this,"Open Image File",QDir::currentPath())*/
@@ -60,6 +63,14 @@ MainWindow::MainWindow(ros::NodeHandle &n, QWidget *parent) :
         ui->in_start_y->setValidator(new QIntValidator(0, path_img.rows, this));
         ui->in_end_x->setValidator(new QIntValidator(0, path_img.cols, this));
         ui->in_end_y->setValidator(new QIntValidator(0, path_img.rows, this));
+//        ui->in_orientation->setValidator(new QDoubleValidator(0, 6.283, 3, this));
+        QDoubleValidator *test = new QDoubleValidator;
+        test->setDecimals(3);
+        test->setBottom(0.0);
+        test->setTop(6.283);
+
+        test->setNotation(QDoubleValidator::StandardNotation);
+        ui->in_orientation->setValidator(test);
     }
 
 
@@ -91,6 +102,15 @@ MainWindow::MainWindow(ros::NodeHandle &n, QWidget *parent) :
 
 
     _button_flag = -1;
+
+    _arrow_length = 20;
+    _orientation = 0;
+    _thickness = 2;
+    _arrow_gain = 0.2;
+    _preset = -1;
+
+    ui->slide_arrow_length->setSliderPosition(_arrow_length);
+    ui->slide_arrow_thickness->setSliderPosition(((double)_thickness/15.0)*100);
 
 }
 
@@ -230,6 +250,8 @@ void MainWindow::setup_landmarks()
         std::string baseline = "visualiser/landmark";
 
         baseline.append(index.c_str());
+        std::string nameGet = baseline;
+        baseline.append("/location");
 
         std::vector<int> xy_coordinates;
 
@@ -240,6 +262,14 @@ void MainWindow::setup_landmarks()
         temp.second = xy_coordinates.back();
 
         _landmarks.push_back(temp);
+
+        nameGet.append("/name");
+
+        std::string tempName;
+
+        _n.getParam(nameGet.c_str(), tempName);
+
+        _landmark_names.push_back(tempName);
     }
 
 
@@ -285,6 +315,8 @@ void MainWindow::display_landmarks()
 
 
     _landmark_map = resize_to_multipler(landmark_disp);
+
+    name_landmarks(_landmark_map);
 
     ui->img_landmarks->setPixmap(QPixmap::fromImage(Mat2QImage(_landmark_map)));
 
@@ -347,12 +379,41 @@ void MainWindow::direction_pts_callback(const geometry_msgs::PoseArrayConstPtr &
             cv::line(img, pt, pt2, cv::Scalar(0,255,255));
         }
 
-        cv::circle(img, pt, 1, cv::Scalar(200,100,100));
+        if(i == 0)
+            cv::circle(img, pt, 1, cv::Scalar(0,255,0));
+        else if(i == pt_list.poses.size() - 1)
+            cv::circle(img, pt, 1, cv::Scalar(0,0,255));
+        else
+            cv::circle(img, pt, 1, cv::Scalar(255,0,0));
     }
 
+    cv::Point2f start_pt;
+    start_pt.x = pt_list.poses.front().position.x*multiplier + multiplier/2;
+    start_pt.y = pt_list.poses.front().position.y*multiplier + multiplier/2;
+
     _directions_map = resize_to_multipler(img);
+
+    name_landmarks(_directions_map);
+
+    arrow(_directions_map, start_pt, _orientation, cv::Scalar(0,255,0), _arrow_length);
+
     ui->img_directions->setPixmap(QPixmap::fromImage(Mat2QImage(_directions_map)));
 
+}
+
+void MainWindow::name_landmarks(cv::Mat &img)
+{
+    for(int i = 0; i < _landmarks.size(); i++)
+    {
+        std::pair<int,int> temp = _landmarks.at(i);
+
+        cv::Point2f pt;
+
+        pt.x = temp.first * multiplier;
+        pt.y = temp.second * multiplier + 40;
+
+        cv::putText(img, _landmark_names.at(i), pt, 1, 1, cv::Scalar(50,150,255));
+    }
 }
 
 void MainWindow::general_display(int x, int y, bool draw)
@@ -449,14 +510,112 @@ void MainWindow::general_display(int x, int y, bool draw)
     }
 
 
+    if(!_user_selections.empty())
+    {
+        cv::Point2f pt1;
+        cv::Point2f pt2;
+
+        pt1.x = _start_x;
+        pt1.y = _start_y;
+
+        pt2.x = _end_x;
+        pt2.y = _end_y;
+
+        cv::line(landmark_disp, pt1, _user_selections.front(), cv::Scalar(0,255,255));
+        cv::line(landmark_disp, pt2, _user_selections.back(), cv::Scalar(0,255,255));
+    }
 
     for(int i = 0; i < _user_selections.size(); i++)
     {
         cv::circle(landmark_disp,_user_selections.at(i),1, cv::Scalar(255,0,0));
+
+        if(i > 0)
+        {
+            cv::line(landmark_disp, _user_selections.at(i - 1), _user_selections.at(i), cv::Scalar(0,255,255));
+        }
     }
 
     _input_map = resize_to_multipler(landmark_disp);
+
+    cv::Point2f start;
+    start.x = _start_x * multiplier + multiplier/2;
+    start.y = _start_y * multiplier + multiplier/2;
+
+    arrow(_input_map, start, _orientation, cv::Scalar(0,255,0), _arrow_length, _thickness);
+    name_landmarks(_input_map);
+
     ui->img_uInput->setPixmap(QPixmap::fromImage(Mat2QImage(_input_map)));
+
+}
+
+void MainWindow::arrow(cv::Mat &img, cv::Point2f pt, double orientation, cv::Scalar color, int length, int thickness)
+{
+    cv::Point2f endPoint;
+
+    endPoint.x = (length * sin(orientation)) + pt.x;
+    endPoint.y = pt.y - (length * cos(orientation));
+
+    if(endPoint.x >= img.cols)
+    {
+        endPoint.x = img.cols;
+        endPoint.y = (endPoint.x - pt.x)/tan(orientation);
+        endPoint.y = pt.y - endPoint.y;
+    }
+
+    if(endPoint.x < 0)
+    {
+        endPoint.x = 0;
+        endPoint.y = (endPoint.x - pt.x)/tan(orientation);
+        endPoint.y = pt.y - endPoint.y;
+    }
+
+    if(endPoint.y >= img.rows)
+    {
+        endPoint.y = img.rows;
+        endPoint.x = (-endPoint.y + pt.y)*tan(orientation);
+        endPoint.x = endPoint.x + pt.x;
+    }
+
+    if(endPoint.y < 0)
+    {
+        endPoint.y = 0;
+        endPoint.x = (-endPoint.y + pt.y)*tan(orientation);
+        endPoint.x = endPoint.x + pt.x;
+    }
+
+    cv::line(img, pt, endPoint, color, _thickness);
+
+    cv::Point2f pt_head1;
+    cv::Point2f pt_head2;
+
+    double headLength = sqrt(pow(pt.x - endPoint.x,2) + pow(pt.y - endPoint.y,2)) * _arrow_gain;
+
+    double dy = -endPoint.y + pt.y;
+    double dx = -endPoint.x + pt.x;
+
+    double phi = -atan2(dy,dx);
+
+    double beta = phi - M_PI/4;
+    double zeta = M_PI - phi;
+    double alpha = zeta - M_PI/4;
+
+
+    double x_shift1 = headLength * cos(beta);
+    double y_shift1 = headLength * sin(beta);
+
+    double x_shift2 = headLength * cos(alpha);
+    double y_shift2 = headLength * sin(alpha);
+
+
+    pt_head1.x = endPoint.x + x_shift1;
+    pt_head1.y = endPoint.y - y_shift1;
+
+
+    pt_head2.x = endPoint.x - x_shift2;
+    pt_head2.y = endPoint.y - y_shift2;
+
+    cv::line(img, endPoint, pt_head1, color, _thickness);
+    cv::line(img, endPoint, pt_head2, color, _thickness);
 
 }
 
@@ -752,6 +911,13 @@ void MainWindow::on_bu_screenshot_directions_clicked()
 
 void MainWindow::on_bu_user_submit_clicked()
 {
+    if(_preset < 0)
+    {
+        QMessageBox::information(this, tr("Direction Generator"), tr("Use a preset please"));
+        return;
+    }
+
+
     std::string name = ui->in_user_name->text().toUtf8().constData();
     std::string directions = ui->in_user_direction->toPlainText().toUtf8().constData();
     std::string feedback = ui->in_user_direction_feedback->toPlainText().toUtf8().constData();
@@ -796,6 +962,7 @@ void MainWindow::on_bu_user_submit_clicked()
     }
 
 
+
     std::ofstream file;
 
     location.append("/");
@@ -808,35 +975,60 @@ void MainWindow::on_bu_user_submit_clicked()
     untainted_location.append(location);
 
     location.append("/");
+    location.append(std::to_string(_preset));
+
+    if(!QDir().exists(location.c_str()))
+        QDir().mkdir(location.c_str());
+
+    location.append("/");
     location.append(name);
 
     std::string raw_path = location;
     std::string direction_path = location;
     std::string direction_list = location;
     std::string landmarks = location;
+    std::string userpath = location;
+    std::string metadata = location;
+    std::string userfeedback = location;
 
     raw_path.append("(raw_path).jpg");
     direction_path.append("(direction_path).jpg");
     direction_list.append("(listed_paths).txt");
     landmarks.append("(landmarks).jpg");
+    userpath.append("(user_path).jpg");
+    metadata.append("(metadata).txt");
+    userfeedback.append("(userfeedback).txt");
 
     cv::imwrite(raw_path.c_str(), _resized_a_star);
     cv::imwrite(direction_path.c_str(), _directions_map);
     cv::imwrite(landmarks.c_str(), _landmark_map);
+    cv::imwrite(userpath.c_str(), _input_map);
 
 
-    location.append(".txt");
+    //Write Metadata
 
-    file.open(location);
-
+    file.open(metadata);
     file << "Name: " << name << std::endl;
 
     file << "start (x,y): " << "(" << _start_x << "," << _start_y << ")" << std::endl;
     file << "end (x,y): " << "(" << _end_x << "," << _end_y << ")" << std::endl;
 
-    file << "USER INSTRUCTIONS START HERE -----------" << std::endl;
+    file.close();
+
+
+    //Write User feedback
+    file.open(userfeedback);
+    file << feedback;
+    file.close();
+
+
+    //Write user directions
+    location.append(".txt");
+
+    file.open(location);
 
     file << directions << std::endl << "USER POINTS\n";
+    file << _start_x << "," << _start_y << std::endl;
 
     for (int i = 0; i < _user_selections.size(); i++)
     {
@@ -844,22 +1036,15 @@ void MainWindow::on_bu_user_submit_clicked()
         file << ",";
         file << std::to_string(_user_selections.at(i).y) << std::endl;
     }
-
-    file  << std::endl << std::endl;
-
-
-
-    file << "USER FEEDBACK STARTS HERE --------------" << std::endl;
-
-    file << feedback;
-
+    file << _end_x << "," << _end_y << std::endl;
 
     file.close();
 
 
+    //Write My Directions
     file.open(direction_list);
 
-    file << _direction_list << "Direction Points\n";
+    file << _direction_list << "\nDirection Points\n";
 
     for (int i = 0; i < _point_generator_selections.size(); i++)
     {
@@ -949,4 +1134,176 @@ void MainWindow::on_bu_undo_uinput_clicked()
     }
 
     _user_selections.pop_back();
+}
+
+void MainWindow::on_slide_orientation_sliderMoved(int position)
+{
+    double percentage = (double)position/100.0;
+
+    double range = 2*M_PI;
+
+    _orientation = range * percentage;
+
+    ui->in_orientation->setText(std::to_string(_orientation).c_str());
+
+    std_msgs::Float32 msg;
+    msg.data = _orientation;
+
+    _orientation_pub.publish(msg);
+
+//    std::cout << "orientation***: " << _orientation << " pos: " << position << std::endl;
+}
+
+void MainWindow::on_slide_arrow_length_sliderMoved(int position)
+{
+    double percentage = (double)position/100.0;
+
+    double range = 100;
+
+    _arrow_length = range * percentage + 1;
+
+//    std::cout << "length***: " << _arrow_length << std::endl;
+}
+
+void MainWindow::on_slide_arrow_thickness_sliderMoved(int position)
+{
+    double percentage = (double)position/100.0;
+
+    double range = 15;
+
+    _thickness = range * percentage + 1;
+}
+
+void MainWindow::on_in_orientation_returnPressed()
+{
+    std::string orientation = ui->in_orientation->text().toUtf8().constData();
+
+    _orientation = std::stod(orientation);
+
+    std_msgs::Float32 msg;
+    msg.data = _orientation;
+
+    ui->slide_orientation->setSliderPosition((_orientation/6.23)*100);
+
+    _orientation_pub.publish(msg);
+}
+
+void MainWindow::on_buP1_clicked()
+{
+    _preset = 1;
+   int startX = 5;
+   int startY = 5;
+
+   int endX = 35;
+   int endY = 10;
+
+   _orientation = 0;
+
+   ui->in_start_x->setText(std::to_string(startX).c_str());
+   ui->in_start_y->setText(std::to_string(startY).c_str());
+   ui->in_end_x->setText(std::to_string(endX).c_str());
+   ui->in_end_y->setText(std::to_string(endY).c_str());
+   ui->in_orientation->setText(std::to_string(_orientation).c_str());
+
+   _set_slider = true;
+   on__bu_find_path_clicked();
+   _set_slider = true;
+
+   on_in_orientation_returnPressed();
+}
+
+void MainWindow::on_buP2_clicked()
+{
+    _preset = 2;
+    int startX = 5;
+    int startY = 5;
+
+    int endX = 51;
+    int endY = 43;
+
+    _orientation = 0;
+
+    ui->in_start_x->setText(std::to_string(startX).c_str());
+    ui->in_start_y->setText(std::to_string(startY).c_str());
+    ui->in_end_x->setText(std::to_string(endX).c_str());
+    ui->in_end_y->setText(std::to_string(endY).c_str());
+    ui->in_orientation->setText(std::to_string(_orientation).c_str());
+
+    _set_slider = true;
+    on__bu_find_path_clicked();
+    _set_slider = true;
+
+    on_in_orientation_returnPressed();
+}
+
+void MainWindow::on_buP3_clicked()
+{
+    _preset = 3;
+    int startX = 34;
+    int startY = 5;
+
+    int endX = 51;
+    int endY = 43;
+
+    _orientation = 3.58;
+
+    ui->in_start_x->setText(std::to_string(startX).c_str());
+    ui->in_start_y->setText(std::to_string(startY).c_str());
+    ui->in_end_x->setText(std::to_string(endX).c_str());
+    ui->in_end_y->setText(std::to_string(endY).c_str());
+    ui->in_orientation->setText(std::to_string(_orientation).c_str());
+
+    _set_slider = true;
+    on__bu_find_path_clicked();
+    _set_slider = true;
+
+    on_in_orientation_returnPressed();
+}
+
+void MainWindow::on_buP4_clicked()
+{
+    _preset = 4;
+    int startX = 34;
+    int startY = 46;
+
+    int endX = 92;
+    int endY = 43;
+
+    _orientation = 1.88;
+
+    ui->in_start_x->setText(std::to_string(startX).c_str());
+    ui->in_start_y->setText(std::to_string(startY).c_str());
+    ui->in_end_x->setText(std::to_string(endX).c_str());
+    ui->in_end_y->setText(std::to_string(endY).c_str());
+    ui->in_orientation->setText(std::to_string(_orientation).c_str());
+
+    _set_slider = true;
+    on__bu_find_path_clicked();
+    _set_slider = true;
+
+    on_in_orientation_returnPressed();
+}
+
+void MainWindow::on_buP5_clicked()
+{
+    _preset = 5;
+    int startX = 5;
+    int startY = 5;
+
+    int endX = 90;
+    int endY = 43;
+
+    _orientation = 3.76;
+
+    ui->in_start_x->setText(std::to_string(startX).c_str());
+    ui->in_start_y->setText(std::to_string(startY).c_str());
+    ui->in_end_x->setText(std::to_string(endX).c_str());
+    ui->in_end_y->setText(std::to_string(endY).c_str());
+    ui->in_orientation->setText(std::to_string(_orientation).c_str());
+
+    _set_slider = true;
+    on__bu_find_path_clicked();
+    _set_slider = true;
+
+    on_in_orientation_returnPressed();
 }

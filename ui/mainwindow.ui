@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1208</width>
-    <height>661</height>
+    <height>791</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -465,9 +465,9 @@
     <property name="geometry">
      <rect>
       <x>1050</x>
-      <y>510</y>
+      <y>630</y>
       <width>151</width>
-      <height>101</height>
+      <height>81</height>
      </rect>
     </property>
     <property name="text">
@@ -479,8 +479,8 @@
      <rect>
       <x>960</x>
       <y>40</y>
-      <width>237</width>
-      <height>331</height>
+      <width>249</width>
+      <height>541</height>
      </rect>
     </property>
     <layout class="QFormLayout" name="formLayout_2">
@@ -521,66 +521,165 @@
        </item>
       </layout>
      </item>
-     <item row="2" column="0" colspan="2">
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_19">
+       <property name="text">
+        <string>Orientation (rad)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="in_orientation"/>
+     </item>
+     <item row="3" column="0" colspan="2">
       <widget class="QPushButton" name="_bu_find_path">
        <property name="text">
         <string>Find Path</string>
        </property>
       </widget>
      </item>
-     <item row="7" column="0">
-      <widget class="QLabel" name="label_12">
-       <property name="text">
-        <string>Shift end X</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="0" colspan="2">
-      <widget class="QSlider" name="slide_shifter">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="0">
-      <widget class="QLabel" name="label_13">
-       <property name="text">
-        <string>Shift end Y</string>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="0" colspan="2">
-      <widget class="QSlider" name="slide_shifter_y">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
+     <item row="4" column="0">
       <widget class="QLabel" name="label_14">
        <property name="text">
         <string>Shift start X</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="0" colspan="2">
+     <item row="5" column="0" colspan="2">
       <widget class="QSlider" name="slide_start_x">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
       </widget>
      </item>
-     <item row="5" column="0">
+     <item row="6" column="0">
       <widget class="QLabel" name="label_15">
        <property name="text">
         <string>Shift start Y</string>
        </property>
       </widget>
      </item>
-     <item row="6" column="0" colspan="2">
+     <item row="7" column="0" colspan="2">
       <widget class="QSlider" name="slide_start_y">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0">
+      <widget class="QLabel" name="label_12">
+       <property name="text">
+        <string>Shift end X</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="0" colspan="2">
+      <widget class="QSlider" name="slide_shifter">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="0">
+      <widget class="QLabel" name="label_13">
+       <property name="text">
+        <string>Shift end Y</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="0" colspan="2">
+      <widget class="QSlider" name="slide_shifter_y">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="12" column="0">
+      <widget class="QLabel" name="label_20">
+       <property name="text">
+        <string>Orientation</string>
+       </property>
+      </widget>
+     </item>
+     <item row="13" column="0" colspan="2">
+      <widget class="QSlider" name="slide_orientation">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="14" column="0">
+      <widget class="QLabel" name="label_21">
+       <property name="text">
+        <string>Arrow Length</string>
+       </property>
+      </widget>
+     </item>
+     <item row="15" column="0" colspan="2">
+      <widget class="QSlider" name="slide_arrow_length">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="16" column="0">
+      <widget class="QLabel" name="label_22">
+       <property name="text">
+        <string>Arrow Thickness</string>
+       </property>
+      </widget>
+     </item>
+     <item row="17" column="0" colspan="2">
+      <widget class="QSlider" name="slide_arrow_thickness">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget_3">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>630</y>
+      <width>931</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="QPushButton" name="buP1">
+       <property name="text">
+        <string>Preset 1</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buP2">
+       <property name="text">
+        <string>Preset 2</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buP3">
+       <property name="text">
+        <string>Preset 3</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buP4">
+       <property name="text">
+        <string>Preset 4</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buP5">
+       <property name="text">
+        <string>Preset 5</string>
        </property>
       </widget>
      </item>

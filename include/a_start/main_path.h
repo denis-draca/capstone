@@ -9,12 +9,12 @@
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/Point.h"
 #include "opencv2/opencv.hpp"
+#include "std_msgs/Float32.h"
 
 #define safeRange 0.01
 
 class main_path
 {
-
 private:// any structs belonging to this class
     struct landmark{
         double x;
@@ -48,6 +48,8 @@ private://methods
     void shutdown(const std_msgs::BoolConstPtr &msg);
     void set_closed(landmark &land);
     void sort(std::vector<landmark> &list);
+    void orientation_callback(const std_msgs::Float32ConstPtr &msg);
+
 
     //Returns BOOL
     bool check_intersection(cv::Point2f &pt1, cv::Point2f &pt2);
@@ -58,6 +60,7 @@ private://methods
     bool closest_to_start(std::string &closest_name);
     bool check_linked_landmarks(std::vector<std::string> &linked_list);
     bool line_of_sight(main_path::landmark &land1, main_path::landmark &land2);
+    bool is_landmark(cv::Point2f pt, std::string &name);
 
 
     //Returns Double
@@ -74,6 +77,7 @@ private://methods
     landmark return_landmark(std::string &land);
 
     std::string landmark_can_see_both();
+    std::string natural_lang_gen(std::vector<cv::Point2f> &list);
 
 
 private://members
@@ -87,6 +91,7 @@ private://members
 
     ros::Subscriber _path_sub;
     ros::Subscriber _shutdown_sub;
+    ros::Subscriber _orientation_sub;
 
     geometry_msgs::PoseArray _a_star_path;
 
@@ -96,6 +101,8 @@ private://members
 
     //OPENCV STUFF
     cv::Mat _map;
+
+    double _orientation;
 
 public:
     main_path(ros::NodeHandle &n);
