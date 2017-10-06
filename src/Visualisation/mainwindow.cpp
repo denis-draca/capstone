@@ -770,6 +770,8 @@ void MainWindow::check_mouse_pos()
 
         if(mouse_point.x() > offset_x && mouse_point.y() > offset_y && mouse_point.x() < size_x && mouse_point.y() < size_y)
             status = true;
+        else
+            _button_flag = -1;
 
 
         if(_button_flag == 1 && status)
@@ -804,6 +806,8 @@ void MainWindow::check_mouse_pos()
         ui->label_selections->setText(total_selections.c_str());
 
     }
+
+//    _mouse_pressed = false;
 }
 
 void MainWindow::on_bu_clear_clicked()
@@ -980,7 +984,10 @@ void MainWindow::on_bu_user_submit_clicked()
     if(!QDir().exists(location.c_str()))
         QDir().mkdir(location.c_str());
 
+
     location.append("/");
+    std::string presetText = location;
+    std::string presetPath = location;
     location.append(name);
 
     std::string raw_path = location;
@@ -991,6 +998,7 @@ void MainWindow::on_bu_user_submit_clicked()
     std::string metadata = location;
     std::string userfeedback = location;
 
+
     raw_path.append("(raw_path).jpg");
     direction_path.append("(direction_path).jpg");
     direction_list.append("(listed_paths).txt");
@@ -998,11 +1006,21 @@ void MainWindow::on_bu_user_submit_clicked()
     userpath.append("(user_path).jpg");
     metadata.append("(metadata).txt");
     userfeedback.append("(userfeedback).txt");
+    presetPath.append(std::to_string(_preset));
+    presetPath.append(".jpg");
+    presetText.append(std::to_string(_preset));
+    presetText.append(".txt");
 
     cv::imwrite(raw_path.c_str(), _resized_a_star);
     cv::imwrite(direction_path.c_str(), _directions_map);
     cv::imwrite(landmarks.c_str(), _landmark_map);
     cv::imwrite(userpath.c_str(), _input_map);
+    cv::imwrite(presetPath.c_str(), _input_map);
+
+    file.open(presetText);
+    file << directions;
+
+    file.close();
 
 
     //Write Metadata
